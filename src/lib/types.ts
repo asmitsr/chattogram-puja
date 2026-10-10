@@ -50,7 +50,9 @@ export interface Notice {
 
 export interface Submission {
   id: string;
-  user_id: string;
+  user_id: string | null;
+  submitter_name: string | null;
+  submitter_phone: string | null;
   kind: 'new_mandapa' | 'correction' | 'schedule' | 'news';
   payload: Record<string, string>;
   status: 'pending' | 'approved' | 'rejected';

@@ -11,7 +11,7 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
   const { data } = await supabase.from('submissions').select('*').order('created_at', { ascending: false }).limit(60);
   const subs = (data ?? []) as Submission[];
 
-  const ids = Array.from(new Set(subs.map((s) => s.user_id)));
+  const ids = Array.from(new Set(subs.map((s) => s.user_id).filter((x): x is string => Boolean(x))));
   const names = new Map<string, string>();
   if (ids.length) {
     const { data: ps } = await supabase.from('profiles').select('id,display_name').in('id', ids);
@@ -33,10 +33,22 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
           <article key={s.id} className="card space-y-2">
             <div>
               <span className="badge">{KIND_LABEL[s.kind]}</span>{' '}
-              <span className="muted">
-                {names.get(s.user_id) ?? 'নাম নেই'} · {fmtDateTime(s.created_at)}
-              </span>
+              {s.user_id ? (
+                <span className="muted">
+                  {names.get(s.user_id) ?? 'নাম নেই'} (Google লগইন) · {fmtDateTime(s.created_at)}
+                </span>
+              ) : (
+                <>
+                  <span className="badge-warn">লগইন ছাড়া জমা, যাচাই করে নিন</span>{' '}
+                  <span className="muted">{fmtDateTime(s.created_at)}</span>
+                </>
+              )}
             </div>
+            {!s.user_id && (
+              <p className="rounded-md bg-goldsoft p-2 text-sm">
+                জমাদাতা: <b>{s.submitter_name}</b> · মোবাইল: <b>{s.submitter_phone}</b> (প্রকাশ হবে না)
+              </p>
+            )}
             <h3 className="text-xl">{s.payload.name}</h3>
             <dl className="grid gap-1 text-sm sm:grid-cols-[7rem_1fr]">
               {s.payload.area && (

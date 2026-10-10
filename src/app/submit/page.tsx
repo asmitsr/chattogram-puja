@@ -1,11 +1,12 @@
 import Flash from '@/components/Flash';
 import LoginButton from '@/components/LoginButton';
+import SubmitFields from '@/components/SubmitFields';
 import { createClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth';
 import { fmtDateTime } from '@/lib/bn';
 import type { Submission } from '@/lib/types';
 import { KIND_LABEL, SUBMISSION_STATUS } from '@/lib/types';
-import { submitInfo } from './actions';
+import { submitAnonymous, submitInfo } from './actions';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'তথ্য জমা দিন' };
@@ -14,13 +15,65 @@ export default async function SubmitPage({ searchParams }: { searchParams: { ok?
   const user = await getUser();
 
   if (!user) {
+    // ফর্ম খোলার সময়, বট ধরার জন্য
+    const started = Date.now();
     return (
-      <div className="wrap max-w-lg py-8">
+      <div className="wrap max-w-2xl py-6">
         <h1 className="text-3xl text-accent">তথ্য জমা দিন</h1>
-        <p className="muted mt-2">
-          নতুন মণ্ডপ, ঠিকানা, সময়সূচি বা ভুল সংশোধনের তথ্য জানাতে প্রথমে Google দিয়ে লগইন করুন। জমা দেওয়া তথ্য সঙ্গে সঙ্গে প্রকাশ হয় না, অ্যাডমিন দেখে অনুমোদন দিলে তবেই দেখা যায়।
+        <p className="muted mb-4 mt-1">
+          নতুন মণ্ডপ, ঠিকানা, সময়সূচি বা ভুল সংশোধনের তথ্য জানাতে লগইন লাগবে না। জমা দেওয়া তথ্য সঙ্গে সঙ্গে প্রকাশ হয় না, অ্যাডমিন দেখে অনুমোদন দিলে তবেই দেখা যায়।
         </p>
-        <div className="card mt-5">
+        <Flash ok={searchParams.ok} err={searchParams.err} />
+
+        <form action={submitAnonymous} className="card space-y-4">
+          <h2 className="text-xl text-accent">লগইন ছাড়াই তথ্য দিন</h2>
+          <SubmitFields />
+
+          <div className="space-y-4 rounded-md bg-goldsoft p-3">
+            <p className="text-sm">
+              আপনার নাম ও মোবাইল নম্বর শুধু অ্যাডমিন দেখবেন, তথ্য যাচাইয়ের দরকারে। সাইটে প্রকাশ হবে না।
+            </p>
+            <div>
+              <label className="label" htmlFor="submitter_name">
+                আপনার নাম
+              </label>
+              <input id="submitter_name" name="submitter_name" className="input" required minLength={2} maxLength={100} autoComplete="name" />
+            </div>
+            <div>
+              <label className="label" htmlFor="submitter_phone">
+                আপনার মোবাইল নম্বর
+              </label>
+              <input
+                id="submitter_phone"
+                name="submitter_phone"
+                className="input"
+                required
+                inputMode="tel"
+                maxLength={20}
+                autoComplete="tel"
+                placeholder="01XXXXXXXXX"
+              />
+            </div>
+          </div>
+
+          {/* স্প্যাম বটের ফাঁদ: মানুষের চোখে পড়ে না, ফাঁকা রাখতে হবে */}
+          <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+            <label htmlFor="website">এই ঘরটি ফাঁকা রাখুন</label>
+            <input id="website" name="website" tabIndex={-1} autoComplete="off" />
+          </div>
+          <input type="hidden" name="started" value={started} />
+
+          <button type="submit" className="btn">
+            জমা দিন
+          </button>
+          <p className="muted">অন্যের ব্যক্তিগত ফোন নম্বর বা ঠিকানা দেবেন না।</p>
+        </form>
+
+        <div className="card mt-5 space-y-3">
+          <h2 className="text-lg text-accent">চাইলে Google দিয়ে লগইন করুন</h2>
+          <p className="muted">
+            লগইন করলে আপনার জমা দেওয়া তথ্যের অবস্থা (অপেক্ষমাণ, অনুমোদিত বা প্রত্যাখ্যাত) এখানে দেখতে পারবেন, আর নাম ও নম্বর আলাদা করে দিতে হবে না। এটি বাধ্যতামূলক নয়।
+          </p>
           <LoginButton next="/submit" />
         </div>
       </div>
@@ -40,48 +93,7 @@ export default async function SubmitPage({ searchParams }: { searchParams: { ok?
       <Flash ok={searchParams.ok} err={searchParams.err} />
 
       <form action={submitInfo} className="card space-y-4">
-        <div>
-          <label className="label" htmlFor="kind">
-            কী জানাতে চান?
-          </label>
-          <select id="kind" name="kind" className="input" defaultValue="new_mandapa">
-            {Object.entries(KIND_LABEL).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="label" htmlFor="name">
-            মণ্ডপের নাম
-          </label>
-          <input id="name" name="name" className="input" required minLength={3} maxLength={150} />
-        </div>
-        <div>
-          <label className="label" htmlFor="area">
-            এলাকা
-          </label>
-          <input id="area" name="area" className="input" maxLength={100} placeholder="যেমন: আন্দরকিল্লা" />
-        </div>
-        <div>
-          <label className="label" htmlFor="address">
-            ঠিকানা
-          </label>
-          <input id="address" name="address" className="input" maxLength={300} />
-        </div>
-        <div>
-          <label className="label" htmlFor="contact">
-            পূজা কমিটির যোগাযোগ (ঐচ্ছিক)
-          </label>
-          <input id="contact" name="contact" className="input" maxLength={100} />
-        </div>
-        <div>
-          <label className="label" htmlFor="detail">
-            বিস্তারিত
-          </label>
-          <textarea id="detail" name="detail" className="input min-h-[120px]" required minLength={10} maxLength={2000} />
-        </div>
+        <SubmitFields />
         <button type="submit" className="btn">
           জমা দিন
         </button>
