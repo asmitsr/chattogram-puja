@@ -1,4 +1,4 @@
-import MapPicker from '@/components/MapPicker';
+import LocationPicker from '@/components/LocationPicker';
 import { KIND_LABEL } from '@/lib/types';
 
 // জমা দেওয়ার ফর্মের ঘরগুলো (ম্যাপ ও সময়সূচিসহ)
@@ -43,7 +43,7 @@ export default function SubmitFields() {
       </div>
       <div className="space-y-2">
         <h3 className="text-lg text-accent">মণ্ডপের অবস্থান (ম্যাপে চিহ্নিত করুন)</h3>
-        <MapPicker lat={null} lng={null} />
+        <LocationPicker />
       </div>
       <div className="space-y-4 rounded-md border border-line p-3">
         <h3 className="text-lg text-accent">সময়সূচি (জানা থাকলে)</h3>
