@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #fbf5f3;
+  --surface: #ffffff;
+  --fg: #2a1417;
+  --muted: #6b5155;
+  --line: #e6d3ce;
+  --accent: #7a1424;
+  --btn-bg: #7a1424;
+  --btn-fg: #fff6f0;
+  --gold: #8a5a0a;
+  --gold-soft: #f5e6c4;
+  --hero-bg: #7a1424;
+  --hero-fg: #fff1e6;
+  --hero-gold: #f0c766;
+  --ok: #2f6b3f;
+  --ok-bg: #e3f1e6;
+  --warn: #8a4b00;
+  --warn-bg: #fbebd0;
+  --err: #a3152b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #170c0f;
+    --surface: #241318;
+    --fg: #f5e8e3;
+    --muted: #bfa39f;
+    --line: #43262d;
+    --accent: #f2a9b5;
+    --btn-bg: #a8304a;
+    --btn-fg: #ffffff;
+    --gold: #e8bc5a;
+    --gold-soft: #3a2a10;
+    --hero-bg: #4a0c18;
+    --ok: #8fd19e;
+    --ok-bg: #173222;
+    --warn: #f2c27a;
+    --warn-bg: #3a2710;
+    --err: #ff8a9b;
+  }
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Hind Siliguri', 'Noto Sans Bengali', 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Tiro Bangla', 'Noto Serif Bengali', Georgia, serif;
+  font-weight: 400;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+a {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .wrap {
+    @apply mx-auto w-full max-w-5xl px-4;
+  }
+  .btn {
+    @apply inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-md bg-btn px-4 py-2 font-semibold text-btnfg no-underline disabled:opacity-60;
+  }
+  .btn-ghost {
+    @apply inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-md border border-accent bg-transparent px-4 py-2 font-semibold text-accent no-underline;
+  }
+  .btn-danger {
+    @apply inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-md border border-err bg-transparent px-4 py-2 font-semibold text-err;
+  }
+  .card {
+    @apply min-w-0 rounded-md border border-line bg-surface p-4;
+  }
+  .input {
+    @apply min-h-[44px] w-full rounded-md border border-line bg-surface px-3 py-2 text-fg;
+  }
+  .label {
+    @apply mb-1 block text-sm font-semibold;
+  }
+  .badge {
+    @apply inline-block rounded-full bg-goldsoft px-2 py-0.5 text-xs font-semibold text-gold;
+  }
+  .badge-ok {
+    @apply inline-block rounded-full bg-okbg px-2 py-0.5 text-xs font-semibold text-ok;
+  }
+  .badge-warn {
+    @apply inline-block rounded-full bg-warnbg px-2 py-0.5 text-xs font-semibold text-warn;
+  }
+  .muted {
+    @apply text-sm text-muted;
+  }
+}
