@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: { default: 'চট্টগ্রামের পুজো', template: '%s · চট্টগ্রামের পুজো' },
-  description: 'চট্টগ্রামের দুর্গাপূজার মণ্ডপ, ঠিকানা, ম্যাপ ও সময়সূচি এক জায়গায়।',
+  description: 'চট্টগ্রামের পূজামণ্ডপ, ঠিকানা, ম্যাপ ও সময়সূচি এক জায়গায়।',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

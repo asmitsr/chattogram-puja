@@ -24,7 +24,7 @@ export default function Countdown({ target }: { target: string }) {
   ];
 
   return (
-    <div className="mt-5 grid max-w-md grid-cols-4 gap-2">
+    <div className="mt-2 grid grid-cols-4 gap-2">
       {cells.map(([n, label]) => (
         <div key={label} className="rounded-md border border-herogold bg-black/20 px-1 py-2 text-center">
           <b className="block font-display text-3xl font-normal leading-tight text-herogold tabular-nums">{n}</b>

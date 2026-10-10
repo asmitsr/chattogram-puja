@@ -30,7 +30,7 @@ export default async function YearsPage({ searchParams }: { searchParams: { ok?:
             <label className="label" htmlFor="n-title">
               শিরোনাম
             </label>
-            <input id="n-title" name="title" className="input" required placeholder="যেমন: দুর্গাপূজা ২০২৭" />
+            <input id="n-title" name="title" className="input" required placeholder="যেমন: পূজা ২০২৭" />
           </div>
           <div>
             <label className="label" htmlFor="n-start">

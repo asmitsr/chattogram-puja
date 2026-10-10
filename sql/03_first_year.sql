@@ -5,5 +5,5 @@
 -- ============================================================
 
 insert into public.puja_years (year, title, status, starts_on, ends_on)
-values (2027, 'দুর্গাপূজা ২০২৭', 'upcoming', null, null)
+values (2027, 'পূজা ২০২৭', 'upcoming', null, null)
 on conflict (year) do nothing;

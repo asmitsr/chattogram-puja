@@ -52,7 +52,12 @@ export default async function Home() {
   const { data: nt } = await supabase.from('notices').select('*').order('created_at', { ascending: false });
   const notices = (nt ?? []) as Notice[];
 
-  const showCountdown = year && year.starts_on && year.status !== 'archived';
+  // সামনে আসা পূজা: আর্কাইভ নয় এমন বছরগুলোর মধ্যে যার শুরুর তারিখ সবচেয়ে কাছে (ঢাকার আজকের তারিখ ধরে)
+  const today = new Date(Date.now() + 6 * 3600 * 1000).toISOString().slice(0, 10);
+  const upcoming = years
+    .filter((y) => y.status !== 'archived' && y.starts_on && (y.ends_on ?? y.starts_on) >= today)
+    .sort((a, b) => (a.starts_on! < b.starts_on! ? -1 : 1))[0];
+  const ongoing = upcoming && upcoming.starts_on! <= today;
 
   return (
     <>
@@ -60,14 +65,25 @@ export default async function Home() {
         <div className="wrap">
           <h1 className="text-[clamp(2.2rem,8vw,3.8rem)] text-herofg">চট্টগ্রামের পুজো</h1>
           <p className="mt-3 max-w-xl opacity-95">
-            পাহাড়, নদী আর সাগরের এই শহরে দুর্গাপূজার সব মণ্ডপ, ঠিকানা ও সময়সূচি এক জায়গায়। অ্যাকাউন্ট ছাড়াই দেখা যায়।
+            পাহাড়, নদী আর সাগরের এই শহরে সব পূজার মণ্ডপ, ঠিকানা ও সময়সূচি এক জায়গায়। অ্যাকাউন্ট ছাড়াই দেখা যায়।
           </p>
-          {showCountdown ? (
-            <>
-              <Countdown target={year!.starts_on!} />
-              <p className="mt-2 text-sm opacity-85">{fmtDate(year!.starts_on)} পর্যন্ত বাকি</p>
-            </>
-          ) : null}
+          <div className="mt-5 max-w-md rounded-xl border border-herogold bg-black/20 p-3">
+            {upcoming && !ongoing ? (
+              <>
+                <p className="text-sm opacity-90">
+                  সামনের পূজা: <b>{upcoming.title}</b> শুরু হতে বাকি
+                </p>
+                <Countdown target={upcoming.starts_on!} />
+                <p className="mt-2 text-sm opacity-85">শুরু: {fmtDate(upcoming.starts_on)}</p>
+              </>
+            ) : upcoming && ongoing ? (
+              <p className="text-lg">
+                <b>{upcoming.title}</b> এখন চলছে। শুভ পূজা!
+              </p>
+            ) : (
+              <p className="text-sm opacity-90">সামনের পূজার তারিখ এখনো ঠিক হয়নি। ঠিক হলে এখানে দিন-ঘণ্টার হিসাব দেখা যাবে।</p>
+            )}
+          </div>
         </div>
       </section>
 

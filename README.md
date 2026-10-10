@@ -1,6 +1,6 @@
 # চট্টগ্রামের পুজো
 
-চট্টগ্রামের দুর্গাপূজার সম্পূর্ণ বাংলা পাবলিক ওয়েবসাইট। Next.js 14, TypeScript, Tailwind CSS, Supabase (ডেটাবেস + লগইন), Leaflet + OpenStreetMap।
+চট্টগ্রামের পূজার সম্পূর্ণ বাংলা পাবলিক ওয়েবসাইট। Next.js 14, TypeScript, Tailwind CSS, Supabase (ডেটাবেস + লগইন), Leaflet + OpenStreetMap।
 
 পূর্ণ ধাপে ধাপে গাইড আলাদা পাতায় দেওয়া আছে। এখানে শুধু দ্রুত সারাংশ।
 
