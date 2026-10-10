@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
-import type { SupabaseClient, User } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/server';
+import type { User } from '@supabase/supabase-js';
+import { createClient, type Sb } from '@/lib/supabase/server';
 
 // প্রতিটি অ্যাডমিন পাতা ও অ্যাকশনের শুরুতে এটি চলে।
 // এটি সুবিধার জন্য; আসল সুরক্ষা ডেটাবেসের RLS নিয়ম (is_admin)।
-export async function requireAdmin(): Promise<{ supabase: SupabaseClient; user: User }> {
+export async function requireAdmin(): Promise<{ supabase: Sb; user: User }> {
   const supabase = createClient();
   const {
     data: { user },
@@ -18,7 +18,7 @@ export async function requireAdmin(): Promise<{ supabase: SupabaseClient; user: 
 }
 
 export async function logActivity(
-  supabase: SupabaseClient,
+  supabase: Sb,
   user: User,
   action: string,
   table: string,

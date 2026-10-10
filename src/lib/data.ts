@@ -1,7 +1,7 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Sb } from '@/lib/supabase/server';
 import type { Year } from './types';
 
-export async function getYears(supabase: SupabaseClient): Promise<Year[]> {
+export async function getYears(supabase: Sb): Promise<Year[]> {
   const { data } = await supabase.from('puja_years').select('*').order('year', { ascending: false });
   return (data ?? []) as Year[];
 }
