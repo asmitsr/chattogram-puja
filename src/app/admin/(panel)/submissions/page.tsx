@@ -69,6 +69,40 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
                   <dd>{s.payload.contact}</dd>
                 </>
               )}
+              {s.payload.latitude && s.payload.longitude && (
+                <>
+                  <dt className="text-muted">অবস্থান</dt>
+                  <dd>
+                    {s.payload.latitude}, {s.payload.longitude} ·{' '}
+                    <a
+                      className="underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={`https://www.openstreetmap.org/?mlat=${s.payload.latitude}&mlon=${s.payload.longitude}#map=17/${s.payload.latitude}/${s.payload.longitude}`}
+                    >
+                      ম্যাপে দেখুন
+                    </a>
+                  </dd>
+                </>
+              )}
+              {s.payload.puja_plan && (
+                <>
+                  <dt className="text-muted">কোন দিন কী পূজা</dt>
+                  <dd className="whitespace-pre-line">{s.payload.puja_plan}</dd>
+                </>
+              )}
+              {s.payload.anjali_time && (
+                <>
+                  <dt className="text-muted">অঞ্জলি</dt>
+                  <dd>{s.payload.anjali_time}</dd>
+                </>
+              )}
+              {s.payload.bisorjon_time && (
+                <>
+                  <dt className="text-muted">বিসর্জন</dt>
+                  <dd>{s.payload.bisorjon_time}</dd>
+                </>
+              )}
               <dt className="text-muted">বিস্তারিত</dt>
               <dd className="whitespace-pre-line">{s.payload.detail}</dd>
             </dl>

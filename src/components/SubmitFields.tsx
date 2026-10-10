@@ -1,6 +1,7 @@
+import MapPicker from '@/components/MapPicker';
 import { KIND_LABEL } from '@/lib/types';
 
-// লগইনসহ ও লগইন ছাড়া, দুই ফর্মেই একই ঘরগুলো
+// জমা দেওয়ার ফর্মের ঘরগুলো (ম্যাপ ও সময়সূচিসহ)
 export default function SubmitFields() {
   return (
     <>
@@ -39,6 +40,37 @@ export default function SubmitFields() {
           পূজা কমিটির যোগাযোগ (ঐচ্ছিক, সাইটে প্রকাশ হতে পারে)
         </label>
         <input id="contact" name="contact" className="input" maxLength={100} />
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-lg text-accent">মণ্ডপের অবস্থান (ম্যাপে চিহ্নিত করুন)</h3>
+        <MapPicker lat={null} lng={null} />
+      </div>
+      <div className="space-y-4 rounded-md border border-line p-3">
+        <h3 className="text-lg text-accent">সময়সূচি (জানা থাকলে)</h3>
+        <div>
+          <label className="label" htmlFor="puja_plan">
+            কোন দিন কী পূজা
+          </label>
+          <textarea
+            id="puja_plan"
+            name="puja_plan"
+            className="input min-h-[90px]"
+            maxLength={600}
+            placeholder={'যেমন:\nষষ্ঠী: বোধন ও অধিবাস\nসপ্তমী: কলাবউ স্নান\nঅষ্টমী: কুমারী পূজা, সন্ধিপূজা'}
+          />
+        </div>
+        <div>
+          <label className="label" htmlFor="anjali_time">
+            অঞ্জলির সময়
+          </label>
+          <input id="anjali_time" name="anjali_time" className="input" maxLength={200} placeholder="যেমন: অষ্টমীর সকাল ১০টা" />
+        </div>
+        <div>
+          <label className="label" htmlFor="bisorjon_time">
+            বিসর্জনের সময়
+          </label>
+          <input id="bisorjon_time" name="bisorjon_time" className="input" maxLength={200} placeholder="যেমন: দশমীর বিকাল ৪টা" />
+        </div>
       </div>
       <div>
         <label className="label" htmlFor="detail">

@@ -44,6 +44,18 @@ export async function approveSubmission(formData: FormData): Promise<void> {
     const year = pickCurrent(await getYears(supabase));
     if (!year) go('/admin/submissions', 'err', 'আগে একটি পূজাবর্ষ তৈরি করুন।');
     const p = sub.payload as Record<string, string>;
+    const la = Number(p.latitude);
+    const lo = Number(p.longitude);
+    const hasPos = !!p.latitude && !!p.longitude && Number.isFinite(la) && Number.isFinite(lo);
+    // সময়সূচির তথ্য হারিয়ে না যেতে বিবরণের নিচে জুড়ে দেওয়া হয়; অ্যাডমিন প্রকাশের আগে মিলিয়ে নেবেন
+    const extra = [
+      p.puja_plan ? `কোন দিন কী পূজা:\n${p.puja_plan}` : '',
+      p.anjali_time ? `অঞ্জলির সময়: ${p.anjali_time}` : '',
+      p.bisorjon_time ? `বিসর্জনের সময়: ${p.bisorjon_time}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+    const description = [p.detail ?? '', extra].filter(Boolean).join('\n\n');
     const { data: created, error } = await supabase
       .from('mandapas')
       .insert({
@@ -52,7 +64,9 @@ export async function approveSubmission(formData: FormData): Promise<void> {
         area: nz(p.area ?? ''),
         address: nz(p.address ?? ''),
         contact: nz(p.contact ?? ''),
-        description: nz(p.detail ?? ''),
+        description: nz(description),
+        latitude: hasPos ? la : null,
+        longitude: hasPos ? lo : null,
         status: 'draft',
       })
       .select('id')
