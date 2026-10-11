@@ -187,7 +187,7 @@ export default function MapView({
   }, [full, fullscreenToggle]);
 
   return (
-    <div className={full ? 'fixed inset-0 z-[2000]' : 'relative'} style={{ backgroundColor: MAP_BG }}>
+    <div className={full ? 'fixed inset-0 z-[2000]' : 'relative isolate'} style={{ backgroundColor: MAP_BG }}>
       <div
         key={full ? 'full' : 'small'}
         ref={el}
@@ -205,8 +205,12 @@ export default function MapView({
           }}
           aria-label={full ? 'ফুল-স্ক্রিন বন্ধ করুন' : 'ফুল-স্ক্রিনে দেখুন'}
           aria-pressed={full}
-          className="absolute right-2.5 top-2.5 flex h-11 items-center justify-center gap-1.5 rounded-full bg-white px-4 text-sm font-semibold text-neutral-800 shadow-lg ring-1 ring-black/10 active:bg-neutral-100"
-          style={{ zIndex: 1000, top: full ? 'max(0.625rem, env(safe-area-inset-top))' : undefined }}
+          className={`${full ? 'fixed' : 'absolute'} flex h-11 items-center justify-center gap-1.5 rounded-full bg-white px-4 text-sm font-semibold text-neutral-800 shadow-lg ring-1 ring-black/10 active:bg-neutral-100`}
+          style={
+            full
+              ? { zIndex: 2100, top: 'max(10px, env(safe-area-inset-top))', right: 'max(10px, env(safe-area-inset-right))' }
+              : { zIndex: 1000, top: 10, right: 10 }
+          }
         >
           <span aria-hidden="true" className="text-lg leading-none">
             {full ? '✕' : '⛶'}

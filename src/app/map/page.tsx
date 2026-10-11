@@ -1,6 +1,5 @@
 import Comments from '@/components/Comments';
 import MapView from '@/components/MapView';
-import PujaMapEmbed from '@/components/PujaMapEmbed';
 import ShareBar from '@/components/ShareBar';
 import { isAdminViewer } from '@/lib/admin';
 import { fetchPins } from '@/lib/pins';
@@ -37,13 +36,6 @@ export default async function MapPage() {
           <p className="card">এখনো ম্যাপে দেখানোর মতো অবস্থানসহ কোনো মণ্ডপ নেই।</p>
         )}
       </div>
-
-      <details className="rounded-md border border-line p-3">
-        <summary className="cursor-pointer font-semibold">গুগল ম্যাপের পূজা মানচিত্রও দেখুন</summary>
-        <div className="mt-3">
-          <PujaMapEmbed ratio={110} />
-        </div>
-      </details>
 
       <ShareBar title="চট্টগ্রামের পুজো — মণ্ডপের ম্যাপ" what="এই ম্যাপ" />
       <Comments mandapaId={null} comments={(data ?? []) as MandapaComment[]} failed={!!error} isAdmin={isAdmin} />
