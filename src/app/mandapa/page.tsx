@@ -3,6 +3,7 @@ import MandapaCard from '@/components/MandapaCard';
 import { createClient } from '@/lib/supabase/server';
 import { getYears, pickCurrent } from '@/lib/data';
 import { bn } from '@/lib/bn';
+import { matches } from '@/lib/search';
 import type { Mandapa } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,7 @@ export default async function MandapaList({ searchParams }: { searchParams: { q?
   const q = (searchParams.q ?? '').trim();
   const area = searchParams.area ?? '';
   const list = all.filter(
-    (m) => (!area || m.area === area) && (!q || `${m.name} ${m.area ?? ''} ${m.address ?? ''}`.includes(q)),
+    (m) => (!area || m.area === area) && matches(`${m.name} ${m.area ?? ''} ${m.address ?? ''}`, q),
   );
 
   return (
@@ -40,7 +41,7 @@ export default async function MandapaList({ searchParams }: { searchParams: { q?
           <label className="label" htmlFor="q">
             মণ্ডপ খুঁজুন
           </label>
-          <input id="q" name="q" defaultValue={q} className="input" type="search" />
+          <input id="q" name="q" defaultValue={q} className="input" type="search" placeholder="যেমন: চকবাজার, কালী বাড়ি, পাথরঘাটা" />
         </div>
         <div>
           <label className="label" htmlFor="area">

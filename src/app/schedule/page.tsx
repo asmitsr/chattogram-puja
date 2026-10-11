@@ -43,7 +43,13 @@ export default async function SchedulePage() {
       <p className="muted mt-1">{year ? `${bn(year.year)} সাল · দিন অনুযায়ী সব মণ্ডপের কর্মসূচি` : ''}</p>
 
       {rows.length === 0 ? (
-        <p className="mt-6">এখনো কোনো সময়সূচি প্রকাশ হয়নি।</p>
+        <div className="card mt-6 space-y-2">
+          <p>এখনো কোনো মণ্ডপের সময়সূচি যোগ হয়নি।</p>
+          <p className="muted">কোনো মণ্ডপের পূজা, অঞ্জলি বা বিসর্জনের সময় জানা থাকলে জানিয়ে দিন।</p>
+          <Link href="/submit" className="btn-ghost">
+            সময়সূচির তথ্য জানান
+          </Link>
+        </div>
       ) : (
         <div className="mt-5 space-y-6">
           {Array.from(groups.entries()).map(([k, items]) => (
