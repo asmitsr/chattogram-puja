@@ -1,31 +1,28 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { findShortLink, inChattogram, parseCoords } from '@/lib/mapLink';
+import { MAP_BG, MAP_CENTER, MAP_HEIGHT, MapFullscreenButton, addPins, createBaseMap, mapBoxClass, shellClass, type Pin } from '@/components/mapKit';
 
 type LL = { lat: number; lng: number };
-
-// চট্টগ্রাম শহরের কেন্দ্র (আন্দরকিল্লা/নিউমার্কেট এলাকা)
-const CENTER: [number, number] = [22.3384, 91.8317];
-// চট্টগ্রাম জেলা ঘিরে সীমা
-const BOUNDS: [[number, number], [number, number]] = [
-  [21.8, 91.2],
-  [23.2, 92.4],
-];
 
 const FAB =
   'flex h-11 w-11 items-center justify-center rounded-full bg-white text-xl font-bold text-neutral-800 shadow-lg ring-1 ring-black/10 active:bg-neutral-100 disabled:opacity-60';
 
-// মোবাইল ম্যাপ অ্যাপের মতো লোকেশন বাছাই: জুম, ট্যাপ করে পিন, পিন টানা, GPS, স্যাটেলাইট, ফুল-স্ক্রিন।
+// লোকেশন বাছাই: /map পাতার একই ম্যাপ (একই টাইল, জুম বোতাম, ॐ মার্কার ও ফুল-স্ক্রিন বোতাম)।
+// এতে ট্যাপ করে পিন বসানো, পিন টানা, GPS ও লিংক পেস্ট করা যায়।
 // অক্ষাংশ-দ্রাঘিমাংশ ব্যবহারকারীকে দেখানো হয় না; লুকানো ঘরে ফর্মের সঙ্গে যায়।
-export default function LocationPicker() {
+export default function LocationPicker({ pins = [] }: { pins?: Pin[] }) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const meRef = useRef<any[]>([]);
   const libRef = useRef<any>(null);
-  const pendingRef = useRef<{ lat: number; lng: number; zoom?: number } | null>(null);
+  const posRef = useRef<LL | null>(null);
+  // ফুল-স্ক্রিন বদলালে ম্যাপ নতুন করে তৈরি হয় (এতে টাইল সাদা হওয়ার সমস্যা হয় না); আগের জায়গা ও জুম মনে রাখা হয়
+  const viewRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
+  const restoreRef = useRef(false);
 
   const [ready, setReady] = useState(false);
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
@@ -47,92 +44,131 @@ export default function LocationPicker() {
     });
   }
 
-  function place(lat: number, lng: number, zoom?: number) {
-    // অবস্থান সবসময় আগে মনে রাখা হয়, ম্যাপ তৈরি না থাকলেও ফর্মের সঙ্গে যাবে
-    setPos({ lat, lng });
+  // মার্কার বসানো/সরানো (ম্যাপের দেখার জায়গা বদলায় না)
+  function putMarker(lat: number, lng: number) {
     const L = libRef.current;
     const map = mapRef.current;
-    if (!L || !map) {
-      pendingRef.current = { lat, lng, zoom };
-      return;
-    }
+    if (!L || !map) return;
     if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
     else {
-      const m = L.marker([lat, lng], { icon: makeIcon(L), draggable: true, autoPan: true, keyboard: false, bubblingMouseEvents: false }).addTo(map);
+      const m = L.marker([lat, lng], { icon: makeIcon(L), draggable: true, autoPan: true, keyboard: false, bubblingMouseEvents: false, zIndexOffset: 1000 }).addTo(map);
       m.on('dragend', () => {
         const p = m.getLatLng();
+        if (!inChattogram({ lat: p.lat, lng: p.lng })) {
+          const back = posRef.current;
+          if (back) m.setLatLng([back.lat, back.lng]);
+          setMsg('জায়গাটি চট্টগ্রাম অঞ্চলের বাইরে মনে হচ্ছে। পিনটি চট্টগ্রামের ভেতরে রাখুন।');
+          return;
+        }
+        posRef.current = { lat: p.lat, lng: p.lng };
         setPos({ lat: p.lat, lng: p.lng });
         setMsg('অবস্থান বদলানো হয়েছে।');
       });
       markerRef.current = m;
     }
+  }
+
+  function place(lat: number, lng: number, zoom?: number) {
+    // অবস্থান সবসময় আগে মনে রাখা হয়, ম্যাপ তৈরি না থাকলেও ফর্মের সঙ্গে যাবে
+    posRef.current = { lat, lng };
+    setPos({ lat, lng });
+    const map = mapRef.current;
+    if (!libRef.current || !map) return;
+    putMarker(lat, lng);
     if (zoom) map.setView([lat, lng], zoom);
     else map.panTo([lat, lng]);
   }
 
   useEffect(() => {
     let cancelled = false;
+    let map: any = null;
+    let ro: ResizeObserver | null = null;
     (async () => {
       const mod: any = await import('leaflet');
       const L = mod.default ?? mod;
-      if (cancelled || !el.current) return;
+      const node = el.current;
+      if (cancelled || !node) return;
       libRef.current = L;
-      const map = L.map(el.current, {
-        scrollWheelZoom: true,
-        dragging: true,
-        touchZoom: true,
-        tap: true,
-        doubleClickZoom: true,
-        bounceAtZoomLimits: false,
-        minZoom: 9,
-        maxZoom: 20,
-        maxBounds: BOUNDS,
-        maxBoundsViscosity: 0.9,
-        zoomControl: false,
-        attributionControl: true,
-      }).setView(CENTER, 14);
-      map.attributionControl.setPrefix(false);
 
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors',
-      }).addTo(map);
-      L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
+      // /map পাতার মতোই একই ম্যাপ, একই টাইল ও জুম বোতাম, একই ॐ মার্কার
+      map = createBaseMap(L, node, { wheelZoom: true });
+      mapRef.current = map;
+      const bounds = addPins(L, map, pins, { newTab: true });
 
       map.on('click', (e: any) => {
-        place(e.latlng.lat, e.latlng.lng);
+        const p = { lat: e.latlng.lat, lng: e.latlng.lng };
+        if (!inChattogram(p)) {
+          setMsg('জায়গাটি চট্টগ্রাম অঞ্চলের বাইরে মনে হচ্ছে। চট্টগ্রামের ভেতরের জায়গা বেছে নিন।');
+          return;
+        }
+        place(p.lat, p.lng);
         setMsg('পিন বসানো হয়েছে। ঠিক জায়গায় না হলে পিনটি টেনে সরান।');
       });
-      mapRef.current = map;
+
+      // আগে বসানো অবস্থান থাকলে (ফুল-স্ক্রিন বদলের পরে বা পেস্ট করা) পিন আবার দেখানো
+      const cur = posRef.current;
+      if (cur) putMarker(cur.lat, cur.lng);
+
+      const saved = restoreRef.current ? viewRef.current : null;
+      restoreRef.current = false;
+      if (saved) map.setView([saved.lat, saved.lng], saved.zoom, { animate: false });
+      else if (cur) map.setView([cur.lat, cur.lng], 17);
+      else if (bounds.length > 1) map.fitBounds(bounds, { padding: [30, 30] });
+
       setReady(true);
-      // ম্যাপ তৈরির আগে বসানো অবস্থান থাকলে এখন পিন হিসেবে দেখানো
-      const pend = pendingRef.current;
-      if (pend) {
-        pendingRef.current = null;
-        place(pend.lat, pend.lng, pend.zoom ?? 17);
+      setTimeout(() => map && map.invalidateSize(), 200);
+      if (typeof ResizeObserver !== 'undefined') {
+        ro = new ResizeObserver(() => {
+          if (map) map.invalidateSize({ animate: false, pan: false });
+        });
+        ro.observe(node);
       }
-      setTimeout(() => map.invalidateSize(), 200);
     })().catch(() => setMsg('ম্যাপ লোড হয়নি। পাতাটি রিফ্রেশ করুন। পিন না বসলেও নিচের ঘরে লিংক বা কোঅর্ডিনেট বসালে অবস্থান জমা যাবে।'));
     return () => {
       cancelled = true;
-      if (mapRef.current) mapRef.current.remove();
+      if (ro) ro.disconnect();
+      if (map) {
+        const c = map.getCenter();
+        viewRef.current = { lat: c.lat, lng: c.lng, zoom: map.getZoom() };
+        map.remove();
+      }
       mapRef.current = null;
       markerRef.current = null;
+      meRef.current = [];
       setReady(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [full]);
 
-  // ফুল-স্ক্রিন বদলালে ম্যাপের মাপ ঠিক করা
-  useEffect(() => {
-    if (!ready) return;
-    document.body.style.overflow = full ? 'hidden' : '';
-    const t = setTimeout(() => mapRef.current && mapRef.current.invalidateSize(), 60);
+  // ফুল-স্ক্রিন টগলের সঙ্গে সঙ্গে ম্যাপের মাপ আবার হিসাব; পেছনের পাতার স্ক্রল বন্ধ; Esc চাপলে বের হওয়া
+  useLayoutEffect(() => {
+    const fix = () => mapRef.current && mapRef.current.invalidateSize({ animate: false, pan: false });
+    fix();
+    const raf = requestAnimationFrame(fix);
+    const timers = [60, 200, 500].map((ms) => setTimeout(fix, ms));
     return () => {
-      clearTimeout(t);
+      cancelAnimationFrame(raf);
+      timers.forEach(clearTimeout);
+    };
+  }, [full]);
+
+  useEffect(() => {
+    document.body.style.overflow = full ? 'hidden' : '';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') toggleFull(false);
+    };
+    if (full) window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-  }, [full, ready]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [full]);
+
+  function toggleFull(v?: boolean) {
+    restoreRef.current = true;
+    setFull((x) => (typeof v === 'boolean' ? v : !x));
+  }
 
   function showMe(lat: number, lng: number, acc: number) {
     const L = libRef.current;
@@ -186,6 +222,7 @@ export default function LocationPicker() {
       markerRef.current.remove();
       markerRef.current = null;
     }
+    posRef.current = null;
     setPos(null);
     setMsg('অবস্থান মুছে ফেলা হয়েছে।');
   }
@@ -244,44 +281,37 @@ export default function LocationPicker() {
 
   const gmapsHref = pos
     ? `https://www.google.com/maps/search/?api=1&query=${pos.lat.toFixed(6)},${pos.lng.toFixed(6)}`
-    : `https://www.google.com/maps/@${CENTER[0]},${CENTER[1]},15z`;
+    : `https://www.google.com/maps/@${MAP_CENTER[0]},${MAP_CENTER[1]},15z`;
 
   const status = msg || (pos ? 'পিন বসানো আছে।' : 'এখনো পিন বসানো হয়নি (ঐচ্ছিক)।');
 
   return (
     <div className="space-y-2">
-      <div className={full ? 'fixed inset-0 z-[2000] bg-neutral-100' : 'relative'}>
+      <div className={shellClass(full)} style={{ backgroundColor: MAP_BG }}>
         <div
+          key={full ? 'full' : 'small'}
           ref={el}
-          style={{ height: full ? '100dvh' : 400 }}
-          className="z-0 w-full overflow-hidden rounded-md border border-line"
+          style={{ height: full ? '100dvh' : MAP_HEIGHT, backgroundColor: MAP_BG }}
+          className={mapBoxClass(full)}
+          role="application"
+          aria-label="লোকেশন বাছাইয়ের ম্যাপ"
         />
 
-        {/* ওপরের ডান: ফুল-স্ক্রিন */}
-        <div className="absolute right-2.5 top-2.5 flex flex-col items-end gap-2" style={{ zIndex: 1000 }}>
-          <button type="button" className={FAB} aria-label={full ? 'ফুল-স্ক্রিন বন্ধ করুন' : 'ফুল-স্ক্রিনে দেখুন'} onClick={() => setFull((v) => !v)}>
-            {full ? '✕' : '⛶'}
-          </button>
-        </div>
+        {/* ওপরের ডান: /map পাতার একই ফুল-স্ক্রিন বোতাম */}
+        <MapFullscreenButton full={full} onToggle={() => toggleFull()} />
 
-        {/* ডান নিচে: জুম ও আমার লোকেশন */}
-        <div className="absolute right-2.5 flex flex-col gap-2" style={{ zIndex: 1000, bottom: full ? 150 : 54 }}>
-          <button type="button" className={FAB} aria-label="জুম ইন" onClick={() => mapRef.current && mapRef.current.zoomIn()}>
-            +
-          </button>
-          <button type="button" className={FAB} aria-label="জুম আউট" onClick={() => mapRef.current && mapRef.current.zoomOut()}>
-            −
-          </button>
+        {/* ডান নিচে: আমার লোকেশন */}
+        <div className="absolute right-2.5" style={{ zIndex: 1000, bottom: full ? 110 : 32 }}>
           <button type="button" className={`${FAB} text-blue-600`} aria-label="আমার লোকেশন" onClick={useMyLocation} disabled={busy || !ready}>
             {busy ? '…' : '◎'}
           </button>
         </div>
 
-        {/* নিচে: মাঝখানে পিন বসান */}
-        <div className="absolute left-2.5 flex items-center gap-2" style={{ zIndex: 1000, bottom: full ? 96 : 10 }}>
+        {/* নিচে বাঁয়ে: মাঝখানে পিন বসান */}
+        <div className="absolute left-2.5 flex items-center gap-2" style={{ zIndex: 1000, bottom: full ? 110 : 32 }}>
           <button
             type="button"
-            className="rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 shadow-lg ring-1 ring-black/10 active:bg-neutral-100"
+            className="rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 shadow-lg ring-1 ring-black/10 active:bg-neutral-100 disabled:opacity-60"
             onClick={pinAtCenter}
             disabled={!ready}
           >
@@ -294,7 +324,7 @@ export default function LocationPicker() {
             <p aria-live="polite" className="text-sm">
               {status}
             </p>
-            <button type="button" className="btn w-full" onClick={() => setFull(false)}>
+            <button type="button" className="btn w-full" onClick={() => toggleFull(false)}>
               ঠিক আছে, ফর্মে ফিরুন
             </button>
           </div>
@@ -303,7 +333,7 @@ export default function LocationPicker() {
 
       {!full && (
         <>
-          <p className="muted">ম্যাপে মণ্ডপের জায়গায় ট্যাপ করে পিন বসান, পিনটি টেনে সরানো যায়। বড় করে দেখতে ওপরের ডানের ⛶ বোতাম চাপুন।</p>
+          <p className="muted">ম্যাপে মণ্ডপের জায়গায় ট্যাপ করে লাল পিন বসান, পিনটি টেনে সরানো যায়। ॐ চিহ্নগুলো আগে থেকে ম্যাপে থাকা মণ্ডপ; চাপলে নাম দেখা যাবে। বড় করে দেখতে ওপরের ডানের ⛶ বোতাম চাপুন।</p>
           <div className="space-y-3 rounded-md border border-line bg-surface p-3">
             <a href={gmapsHref} target="_blank" rel="noopener noreferrer" className="btn w-full justify-center no-underline">
               🗺 গুগল ম্যাপ অ্যাপে খুলে লোকেশন বেছে নিন

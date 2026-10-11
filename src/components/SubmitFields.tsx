@@ -1,7 +1,7 @@
 import LocationGuide from '@/components/LocationGuide';
 import LocationPicker from '@/components/LocationPicker';
 import PlacePicker from '@/components/PlacePicker';
-import MapView, { type Pin } from '@/components/MapView';
+import type { Pin } from '@/components/mapKit';
 import { KIND_LABEL } from '@/lib/types';
 
 // জমা দেওয়ার ফর্মের ঘরগুলো (ম্যাপ ও সময়সূচিসহ)
@@ -42,13 +42,7 @@ export default function SubmitFields({ pins = [] }: { pins?: Pin[] }) {
       <div>
         <span className="label">মণ্ডপের অবস্থান (ম্যাপে পিন বসান)</span>
         <LocationGuide />
-        <LocationPicker />
-        <details className="mt-3 rounded-md border border-line p-3">
-          <summary className="cursor-pointer font-semibold">মণ্ডপটি আগে থেকে ম্যাপে আছে কি না দেখুন</summary>
-          <div className="mt-3">
-            {pins.length > 0 ? <MapView pins={pins} height={360} wheelZoom /> : <p className="muted">এখনো ম্যাপে দেখানোর মতো মণ্ডপ নেই।</p>}
-          </div>
-        </details>
+        <LocationPicker pins={pins} />
       </div>
       <div className="space-y-4 rounded-md border border-line p-3">
         <h3 className="text-lg text-accent">সময়সূচি (জানা থাকলে)</h3>

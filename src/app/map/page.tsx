@@ -1,5 +1,6 @@
 import Comments from '@/components/Comments';
 import MapView from '@/components/MapView';
+import { MAP_HEIGHT } from '@/components/mapKit';
 import ShareBar from '@/components/ShareBar';
 import { isAdminViewer } from '@/lib/admin';
 import { fetchPins } from '@/lib/pins';
@@ -31,7 +32,7 @@ export default async function MapPage() {
           {noLoc > 0 && <> আরও {bn(noLoc)}টি মণ্ডপের সঠিক অবস্থান এখনো যোগ হয়নি।</>}
         </p>
         {pins.length > 0 ? (
-          <MapView pins={pins} height="clamp(260px, 38vh, 420px)" wheelZoom fullscreenToggle />
+          <MapView pins={pins} height={MAP_HEIGHT} wheelZoom fullscreenToggle />
         ) : (
           <p className="card">এখনো ম্যাপে দেখানোর মতো অবস্থানসহ কোনো মণ্ডপ নেই।</p>
         )}
