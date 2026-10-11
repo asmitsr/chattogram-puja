@@ -1,13 +1,16 @@
 import Flash from '@/components/Flash';
 import SubmitFields from '@/components/SubmitFields';
+import { fetchPins } from '@/lib/pins';
+import { createClient } from '@/lib/supabase/server';
 import { submitAnonymous } from './actions';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'তথ্য জমা দিন' };
 
-export default function SubmitPage({ searchParams }: { searchParams: { ok?: string; err?: string } }) {
+export default async function SubmitPage({ searchParams }: { searchParams: { ok?: string; err?: string } }) {
   // ফর্ম খোলার সময়, বট ধরার জন্য
   const started = Date.now();
+  const { pins } = await fetchPins(createClient());
   return (
     <div className="wrap max-w-2xl py-6">
       <h1 className="text-3xl text-accent">তথ্য জমা দিন</h1>
@@ -17,7 +20,7 @@ export default function SubmitPage({ searchParams }: { searchParams: { ok?: stri
       <Flash ok={searchParams.ok} err={searchParams.err} />
 
       <form action={submitAnonymous} className="card space-y-4">
-        <SubmitFields />
+        <SubmitFields pins={pins} />
 
         <div className="space-y-4 rounded-md bg-goldsoft p-3">
           <p className="text-sm">আপনার নাম ও মোবাইল নম্বর শুধু অ্যাডমিন দেখবেন, তথ্য যাচাইয়ের দরকারে। সাইটে প্রকাশ হবে না।</p>

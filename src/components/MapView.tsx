@@ -7,6 +7,10 @@ export interface Pin {
   id: string;
   name: string;
   area: string | null;
+  address?: string | null;
+  contact?: string | null;
+  description?: string | null;
+  link?: boolean; // false হলে "বিস্তারিত" লিংক দেখানো হয় না
   lat: number;
   lng: number;
 }
@@ -50,18 +54,42 @@ export default function MapView({ pins, height = 420, wheelZoom = false, fitAll 
       const bounds: [number, number][] = [];
       pins.forEach((p) => {
         const box = document.createElement('div');
+        box.style.maxWidth = '240px';
+        const line = (text: string, style?: Partial<CSSStyleDeclaration>) => {
+          const d = document.createElement('div');
+          d.textContent = text;
+          if (style) Object.assign(d.style, style);
+          box.appendChild(d);
+        };
         const title = document.createElement('b');
         title.textContent = p.name;
+        title.style.fontSize = '15px';
         box.appendChild(title);
-        if (p.area) {
-          const area = document.createElement('div');
-          area.textContent = p.area;
-          box.appendChild(area);
+        if (p.area) line(p.area, { marginTop: '2px' });
+        if (p.address) line('ঠিকানা: ' + p.address, { marginTop: '4px' });
+        if (p.contact) line('যোগাযোগ: ' + p.contact, { marginTop: '4px' });
+        if (p.description) {
+          const t = p.description.length > 160 ? p.description.slice(0, 160).trimEnd() + '…' : p.description;
+          line(t, { marginTop: '4px', whiteSpace: 'pre-line', opacity: '0.85' });
         }
-        const link = document.createElement('a');
-        link.href = `/mandapa/${p.id}`;
-        link.textContent = 'বিস্তারিত দেখুন';
-        box.appendChild(link);
+        const actions = document.createElement('div');
+        actions.style.marginTop = '6px';
+        actions.style.display = 'flex';
+        actions.style.gap = '12px';
+        actions.style.flexWrap = 'wrap';
+        if (p.link !== false) {
+          const link = document.createElement('a');
+          link.href = `/mandapa/${p.id}`;
+          link.textContent = 'বিস্তারিত দেখুন';
+          actions.appendChild(link);
+        }
+        const dir = document.createElement('a');
+        dir.href = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
+        dir.target = '_blank';
+        dir.rel = 'noopener noreferrer';
+        dir.textContent = 'দিকনির্দেশ';
+        actions.appendChild(dir);
+        box.appendChild(actions);
 
         L.marker([p.lat, p.lng], { icon: omIcon(L, pins.length === 1 ? 40 : 34), title: p.name, riseOnHover: true })
           .addTo(map)

@@ -1,10 +1,10 @@
 import LocationPicker from '@/components/LocationPicker';
 import PlacePicker from '@/components/PlacePicker';
-import PujaMapEmbed from '@/components/PujaMapEmbed';
+import MapView, { type Pin } from '@/components/MapView';
 import { KIND_LABEL } from '@/lib/types';
 
 // জমা দেওয়ার ফর্মের ঘরগুলো (ম্যাপ ও সময়সূচিসহ)
-export default function SubmitFields() {
+export default function SubmitFields({ pins = [] }: { pins?: Pin[] }) {
   return (
     <>
       <div>
@@ -44,7 +44,7 @@ export default function SubmitFields() {
         <details className="mt-3 rounded-md border border-line p-3">
           <summary className="cursor-pointer font-semibold">মণ্ডপটি আগে থেকে ম্যাপে আছে কি না দেখুন</summary>
           <div className="mt-3">
-            <PujaMapEmbed />
+            {pins.length > 0 ? <MapView pins={pins} height={360} wheelZoom /> : <p className="muted">এখনো ম্যাপে দেখানোর মতো মণ্ডপ নেই।</p>}
           </div>
         </details>
       </div>

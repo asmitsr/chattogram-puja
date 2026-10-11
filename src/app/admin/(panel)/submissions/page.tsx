@@ -86,7 +86,7 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
                     {Number.isFinite(Number(s.payload.latitude)) && Number.isFinite(Number(s.payload.longitude)) && (
                       <div className="mt-2">
                         <MapView
-                          pins={[{ id: s.id, name: s.payload.name, area: s.payload.area ?? null, lat: Number(s.payload.latitude), lng: Number(s.payload.longitude) }]}
+                          pins={[{ id: s.id, name: s.payload.name, area: s.payload.area ?? null, link: false, lat: Number(s.payload.latitude), lng: Number(s.payload.longitude) }]}
                           height={220}
                         />
                       </div>

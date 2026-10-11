@@ -1,7 +1,8 @@
 import Comments from '@/components/Comments';
-import MapView, { type Pin } from '@/components/MapView';
+import MapView from '@/components/MapView';
 import PujaMapEmbed from '@/components/PujaMapEmbed';
 import ShareBar from '@/components/ShareBar';
+import { fetchPins } from '@/lib/pins';
 import { createClient } from '@/lib/supabase/server';
 import { bn } from '@/lib/bn';
 import type { MandapaComment } from '@/lib/types';
@@ -13,17 +14,11 @@ export default async function MapPage() {
   const supabase = createClient();
 
   // ডাটাবেসের সব প্রকাশিত মণ্ডপ: অ্যাডমিন অনুমোদনের পর নতুন মণ্ডপও এখানে ॐ মার্কারে আসে
-  const [{ data: ms }, { data, error }] = await Promise.all([
-    supabase.from('mandapas').select('id,name,area,latitude,longitude').eq('status', 'published').limit(3000),
+  const [{ pins, noLoc }, { data, error }] = await Promise.all([
+    fetchPins(supabase),
     // ম্যাপ পাতার সাধারণ মতামত: নির্দিষ্ট কোনো মণ্ডপের নয় (mandapa_id ফাঁকা)
     supabase.from('comments').select('*').is('mandapa_id', null).order('created_at', { ascending: true }).limit(500),
   ]);
-
-  const all = (ms ?? []) as { id: string; name: string; area: string | null; latitude: number | null; longitude: number | null }[];
-  const pins: Pin[] = all
-    .filter((m) => m.latitude !== null && m.longitude !== null && Number.isFinite(Number(m.latitude)) && Number.isFinite(Number(m.longitude)))
-    .map((m) => ({ id: m.id, name: m.name, area: m.area, lat: Number(m.latitude), lng: Number(m.longitude) }));
-  const noLoc = all.length - pins.length;
 
   return (
     <div className="wrap space-y-6 py-6">
