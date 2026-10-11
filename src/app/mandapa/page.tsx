@@ -34,14 +34,14 @@ export default async function MandapaList({ searchParams }: { searchParams: { q?
   return (
     <div className="wrap py-6">
       <h1 className="text-3xl text-accent">পূজামণ্ডপের তালিকা</h1>
-      <p className="muted mt-1">{year ? `${bn(year.year)} সাল` : ''} নাম বা এলাকা দিয়ে খুঁজুন।</p>
+      <p className="muted mt-1">{year ? `${bn(year.year)} সাল` : ''} নাম বা এলাকা দিয়ে খুঁজুন (বাংলা বা ইংরেজিতে)।</p>
 
       <form className="my-4 grid gap-3 sm:grid-cols-[2fr_1fr_auto]" method="get">
         <div>
           <label className="label" htmlFor="q">
             মণ্ডপ খুঁজুন
           </label>
-          <input id="q" name="q" defaultValue={q} className="input" type="search" placeholder="যেমন: চকবাজার, কালী বাড়ি, পাথরঘাটা" />
+          <input id="q" name="q" defaultValue={q} className="input" type="search" placeholder="যেমন: চকবাজার, কালী বাড়ি, Jamalkhan" />
         </div>
         <div>
           <label className="label" htmlFor="area">
