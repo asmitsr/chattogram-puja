@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { postComment, toggleLike } from '@/app/mandapa/[id]/actions';
+import { adminDeleteComment, adminReply, postComment, toggleLike } from '@/app/mandapa/[id]/actions';
 import { bn, fmtDateTime } from '@/lib/bn';
 import type { MandapaComment } from '@/lib/types';
 
@@ -154,15 +154,111 @@ function Author({ c }: { c: MandapaComment }) {
       <b className="inline-flex items-center gap-1.5">
         <span aria-hidden="true">👤</span>
         {c.author_name}
-        {c.by_admin && <span className="badge">অ্যাডমিন</span>}
+        {c.by_admin && !c.parent_id && <span className="badge">অ্যাডমিন</span>}
       </b>
       <span className="muted text-xs">{fmtDateTime(c.created_at)}</span>
     </div>
   );
 }
 
+// অ্যাডমিনের রিপ্লাইয়ে আলাদা, পরিষ্কার লেবেল
+function AdminReplyBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-btn px-2.5 py-0.5 text-xs font-bold text-btnfg">
+      <span aria-hidden="true">🛡</span> এডমিন রিপ্লাই
+    </span>
+  );
+}
+
+// শুধু অ্যাডমিনকে দেখানো হয়: এক চাপে মন্তব্য/রিপ্লাই মোছা (নিশ্চিত করার প্রশ্নসহ)
+function DeleteButton({ c }: { c: MandapaComment }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  async function del() {
+    const msg = c.parent_id ? 'এই রিপ্লাইটি মুছে ফেলবেন?' : 'এই মন্তব্যটি ও এর সব রিপ্লাই মুছে ফেলবেন?';
+    if (!window.confirm(msg)) return;
+    setBusy(true);
+    const r = await adminDeleteComment(c.id);
+    setBusy(false);
+    if (!r.ok) {
+      alert(r.error ?? 'মোছা যায়নি।');
+      return;
+    }
+    router.refresh();
+  }
+  return (
+    <button type="button" onClick={() => void del()} disabled={busy} className="text-sm font-semibold text-err disabled:opacity-60">
+      🗑 {busy ? 'মোছা হচ্ছে…' : 'মুছুন'}
+    </button>
+  );
+}
+
+// শুধু অ্যাডমিনের রিপ্লাই ফর্ম (নাম বা অজ্ঞাতনামের দরকার নেই)
+function AdminReplyForm({ parentId, onDone }: { parentId: string; onDone: () => void }) {
+  const router = useRouter();
+  const [body, setBody] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setErr('');
+    const r = await adminReply(parentId, body);
+    setBusy(false);
+    if (!r.ok) {
+      setErr(r.error ?? 'রিপ্লাই দেওয়া যায়নি।');
+      return;
+    }
+    setBody('');
+    router.refresh();
+    onDone();
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-3 rounded-md border border-line bg-surface p-3">
+      <div className="flex items-center gap-2">
+        <AdminReplyBadge />
+      </div>
+      <textarea
+        className="input min-h-[80px]"
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+        maxLength={1000}
+        placeholder="অ্যাডমিন হিসেবে রিপ্লাই লিখুন..."
+        aria-label="অ্যাডমিন রিপ্লাই"
+        required
+      />
+      {err && (
+        <p role="alert" className="rounded-md bg-warnbg p-2 text-sm font-semibold text-err">
+          {err}
+        </p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" className="btn" disabled={busy}>
+          ➤ {busy ? 'পাঠানো হচ্ছে…' : 'রিপ্লাই করুন'}
+        </button>
+        <button type="button" className="btn-ghost" onClick={onDone}>
+          বাতিল
+        </button>
+      </div>
+    </form>
+  );
+}
+
 // মণ্ডপের পাতার "মতামত ও কমেন্টস": মন্তব্য, রিপ্লাই ও লাইক
-export default function Comments({ mandapaId, comments, failed }: { mandapaId: string | null; comments: MandapaComment[]; failed?: boolean }) {
+export default function Comments({
+  mandapaId,
+  comments,
+  failed,
+  isAdmin = false,
+}: {
+  mandapaId: string | null;
+  comments: MandapaComment[];
+  failed?: boolean;
+  isAdmin?: boolean;
+}) {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [liked, setLiked] = useState<Record<string, boolean>>({});
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -222,7 +318,7 @@ export default function Comments({ mandapaId, comments, failed }: { mandapaId: s
       <h2 id="comments-h" className="text-2xl text-accent">
         <span aria-hidden="true">💬</span> মতামত ও কমেন্টস {total > 0 && <span className="muted text-base">({bn(total)})</span>}
       </h2>
-      <p className="muted">মণ্ডপ সম্পর্কে আপনার মতামত, অভিযোগ বা পরামর্শ জানান। ভদ্র ভাষায় লিখুন; অন্যের ব্যক্তিগত তথ্য দেবেন না।</p>
+      <p className="muted">মণ্ডপ সম্পর্কে আপনার মতামত, অভিযোগ বা পরামর্শ জানান। ভদ্র ভাষায় লিখুন; অন্যের ব্যক্তিগত তথ্য দেবেন না। মন্তব্যের উত্তর শুধু অ্যাডমিন দিতে পারেন।</p>
 
       {failed && (
         <p role="alert" className="rounded-md bg-warnbg p-2 text-sm font-semibold text-err">
@@ -240,25 +336,37 @@ export default function Comments({ mandapaId, comments, failed }: { mandapaId: s
             <p className="whitespace-pre-line break-words">{c.body}</p>
             <div className="flex flex-wrap items-center gap-4">
               <LikeButton c={c} liked={!!liked[c.id]} count={countOf(c)} onToggle={onToggle} />
-              <button type="button" className="text-sm font-semibold text-accent" onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}>
-                ↩ রিপ্লাই দিন
-              </button>
+              {isAdmin && (
+                <button type="button" className="text-sm font-semibold text-accent" onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}>
+                  ↩ অ্যাডমিন রিপ্লাই
+                </button>
+              )}
               <button type="button" className="text-sm font-semibold text-muted" onClick={() => void shareComment(c)}>
                 ⤴ শেয়ার
               </button>
+              {isAdmin && <DeleteButton c={c} />}
             </div>
 
             {(repliesOf.get(c.id) ?? []).map((r) => (
-              <div key={r.id} className="ml-3 space-y-2 rounded-md border border-line bg-bg p-3 sm:ml-6">
+              <div
+                key={r.id}
+                className={`ml-3 space-y-2 rounded-md border border-line p-3 sm:ml-6 ${
+                  r.by_admin ? 'border-l-4 border-l-accent bg-goldsoft' : 'bg-bg'
+                }`}
+              >
+                {r.by_admin && <AdminReplyBadge />}
                 <Author c={r} />
                 <p className="whitespace-pre-line break-words">{r.body}</p>
-                <LikeButton c={r} liked={!!liked[r.id]} count={countOf(r)} onToggle={onToggle} />
+                <div className="flex flex-wrap items-center gap-4">
+                  <LikeButton c={r} liked={!!liked[r.id]} count={countOf(r)} onToggle={onToggle} />
+                  {isAdmin && <DeleteButton c={r} />}
+                </div>
               </div>
             ))}
 
-            {replyTo === c.id && (
+            {isAdmin && replyTo === c.id && (
               <div className="ml-3 sm:ml-6">
-                <CommentForm mandapaId={mandapaId} parentId={c.id} compact onDone={() => setReplyTo(null)} />
+                <AdminReplyForm parentId={c.id} onDone={() => setReplyTo(null)} />
               </div>
             )}
           </article>

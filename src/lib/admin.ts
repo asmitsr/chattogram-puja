@@ -33,3 +33,23 @@ export async function logActivity(
     details: details ?? null,
   });
 }
+
+// লগইন করা ব্যক্তি অ্যাডমিন হলে তার তথ্য দেয়, না হলে null (রিডাইরেক্ট করে না)।
+// সাধারণ পাতায় অ্যাডমিন বোতাম দেখানো ও সার্ভার অ্যাকশনে অনুমতি যাচাইয়ে ব্যবহার হয়।
+export async function getAdminContext(): Promise<{ supabase: Sb; user: User } | null> {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data } = await supabase.from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
+    return data ? { supabase, user } : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function isAdminViewer(): Promise<boolean> {
+  return (await getAdminContext()) !== null;
+}

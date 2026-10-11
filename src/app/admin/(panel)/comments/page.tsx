@@ -32,7 +32,7 @@ export default async function AdminComments({ searchParams }: { searchParams: { 
         <article key={c.id} className="card space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <b>{c.author_name}</b>
-            {c.by_admin && <span className="badge">অ্যাডমিন</span>}
+            {c.by_admin && (c.parent_id ? <span className="badge">🛡 এডমিন রিপ্লাই</span> : <span className="badge">অ্যাডমিন</span>)}
             {c.parent_id && <span className="badge">রিপ্লাই</span>}
             <span className="muted text-sm">{fmtDateTime(c.created_at)}</span>
             <span className="muted text-sm">· ❤ {c.like_count}</span>

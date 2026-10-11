@@ -2,6 +2,7 @@ import Comments from '@/components/Comments';
 import MapView from '@/components/MapView';
 import PujaMapEmbed from '@/components/PujaMapEmbed';
 import ShareBar from '@/components/ShareBar';
+import { isAdminViewer } from '@/lib/admin';
 import { fetchPins } from '@/lib/pins';
 import { createClient } from '@/lib/supabase/server';
 import { bn } from '@/lib/bn';
@@ -14,10 +15,11 @@ export default async function MapPage() {
   const supabase = createClient();
 
   // ডাটাবেসের সব প্রকাশিত মণ্ডপ: অ্যাডমিন অনুমোদনের পর নতুন মণ্ডপও এখানে ॐ মার্কারে আসে
-  const [{ pins, noLoc }, { data, error }] = await Promise.all([
+  const [{ pins, noLoc }, { data, error }, isAdmin] = await Promise.all([
     fetchPins(supabase),
     // ম্যাপ পাতার সাধারণ মতামত: নির্দিষ্ট কোনো মণ্ডপের নয় (mandapa_id ফাঁকা)
     supabase.from('comments').select('*').is('mandapa_id', null).order('created_at', { ascending: true }).limit(500),
+    isAdminViewer(),
   ]);
 
   return (
@@ -44,7 +46,7 @@ export default async function MapPage() {
       </details>
 
       <ShareBar title="চট্টগ্রামের পুজো — মণ্ডপের ম্যাপ" what="এই ম্যাপ" />
-      <Comments mandapaId={null} comments={(data ?? []) as MandapaComment[]} failed={!!error} />
+      <Comments mandapaId={null} comments={(data ?? []) as MandapaComment[]} failed={!!error} isAdmin={isAdmin} />
     </div>
   );
 }
