@@ -6,7 +6,7 @@ const BTN =
   'inline-flex min-h-[40px] items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold text-white no-underline cursor-pointer';
 
 // মণ্ডপের পাতা শেয়ার: ফেসবুক, মেসেঞ্জার, হোয়াটসঅ্যাপ ও আরও শেয়ার অপশন (লিংক কপিসহ)
-export default function ShareBar({ title }: { title: string }) {
+export default function ShareBar({ title, what = 'এই মণ্ডপের তথ্য' }: { title: string; what?: string }) {
   const [msg, setMsg] = useState('');
 
   const url = () => window.location.href.split('#')[0];
@@ -74,7 +74,7 @@ export default function ShareBar({ title }: { title: string }) {
 
   return (
     <div className="space-y-2 border-t border-line pt-4 text-center">
-      <p className="muted">এই মণ্ডপের তথ্য অন্যদের সাথে শেয়ার করুন:</p>
+      <p className="muted">{what} অন্যদের সাথে শেয়ার করুন:</p>
       <div className="flex flex-wrap justify-center gap-2">
         <button type="button" className={BTN} style={{ background: '#1877f2' }} onClick={facebook}>
           <span aria-hidden="true" className="font-bold">f</span> ফেসবুক

@@ -15,7 +15,7 @@ export default async function MandapaDetail({ params }: { params: { id: string }
   if (!data) notFound();
   const m = data as Mandapa;
 
-  const [{ data: y }, { data: s }, { data: cm }] = await Promise.all([
+  const [{ data: y }, { data: s }, { data: cm, error: cmErr }] = await Promise.all([
     supabase.from('puja_years').select('year,title').eq('id', m.year_id).maybeSingle(),
     supabase.from('schedules').select('*').eq('mandapa_id', m.id).order('starts_at'),
     supabase.from('comments').select('*').eq('mandapa_id', m.id).order('created_at', { ascending: true }).limit(500),
@@ -68,7 +68,7 @@ export default async function MandapaDetail({ params }: { params: { id: string }
       </section>
 
       <ShareBar title={m.name} />
-      <Comments mandapaId={m.id} comments={comments} />
+      <Comments mandapaId={m.id} comments={comments} failed={!!cmErr} />
 
       <section>
         <h2 className="mb-2 text-2xl text-accent">সময়সূচি</h2>

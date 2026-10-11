@@ -53,7 +53,7 @@ export interface Submission {
 
 export interface MandapaComment {
   id: string;
-  mandapa_id: string;
+  mandapa_id: string | null;
   parent_id: string | null;
   author_name: string;
   body: string;

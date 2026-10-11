@@ -1,11 +1,13 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { isValidPlace } from '@/lib/ctgPlaces';
 import { createAnonClient } from '@/lib/supabase/anon';
 
 const KINDS = ['new_mandapa', 'correction', 'schedule'];
 const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
+const OK_CORRECTED = 'ধন্যবাদ! আপনার সংশোধন সঙ্গে সঙ্গে মণ্ডপের তথ্যে হালনাগাদ হয়ে গেছে।';
 const OK_QUEUED = 'আপনার তথ্য জমা হয়েছে। অ্যাডমিন যাচাই করে অনুমোদন দিলে সাইটে প্রকাশ হবে। ধন্যবাদ।';
 
 function text(f: FormData, k: string, max: number): string {
@@ -88,6 +90,41 @@ export async function submitAnonymous(formData: FormData): Promise<void> {
   if (!phone) fail('মোবাইল নম্বর ঠিক নয়। যেমন লিখুন: 01XXXXXXXXX');
 
   const supabase = createAnonClient();
+
+  // ভুল সংশোধন: প্রকাশিত মণ্ডপের নাম মিললে অ্যাডমিন অনুমোদন ছাড়াই সরাসরি হালনাগাদ হয়।
+  // নাম না মিললে বা একাধিক মিললে নিচের নিয়মে অ্যাডমিনের জন্য 'pending' থাকে।
+  if (kind === 'correction') {
+    const extra = [
+      payload.puja_plan ? `কোন দিন কী পূজা:\n${payload.puja_plan}` : '',
+      payload.anjali_time ? `অঞ্জলির সময়: ${payload.anjali_time}` : '',
+      payload.bisorjon_time ? `বিসর্জনের সময়: ${payload.bisorjon_time}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+    const description = [payload.detail, extra].filter(Boolean).join('\n\n');
+    const hasPos = payload.latitude !== '' && payload.longitude !== '';
+    const { data: fixedId, error: fixErr } = await supabase.rpc('apply_correction', {
+      p_name: payload.name,
+      p_thana: payload.thana,
+      p_area: payload.locality.startsWith('তালিকায় নেই') ? '' : payload.area,
+      p_address: payload.address,
+      p_contact: payload.contact,
+      p_description: description,
+      p_lat: hasPos ? Number(payload.latitude) : null,
+      p_lng: hasPos ? Number(payload.longitude) : null,
+      p_submitter_name: submitterName,
+      p_submitter_phone: phone,
+      p_payload: payload,
+    });
+    if (!fixErr && fixedId) {
+      revalidatePath('/', 'layout');
+      done(OK_CORRECTED);
+    }
+    if (fixErr && fixErr.message.includes('limit')) {
+      fail('এই মুহূর্তে অনেক সংশোধন জমা পড়ছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।');
+    }
+    // ফাংশন না থাকলে (SQL 09 চালানো হয়নি) বা মণ্ডপ না মিললে: সাধারণ জমা হিসেবে চলবে
+  }
 
   // সব জমা 'pending' হিসেবে থাকে; অ্যাডমিন অনুমোদন দিলে তবেই সাইটে প্রকাশ হয়
   const { error } = await supabase.from('submissions').insert({

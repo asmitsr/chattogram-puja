@@ -39,7 +39,7 @@ function CommentForm({
   compact,
   onDone,
 }: {
-  mandapaId: string;
+  mandapaId: string | null;
   parentId: string | null;
   compact?: boolean;
   onDone?: () => void;
@@ -162,7 +162,7 @@ function Author({ c }: { c: MandapaComment }) {
 }
 
 // মণ্ডপের পাতার "মতামত ও কমেন্টস": মন্তব্য, রিপ্লাই ও লাইক
-export default function Comments({ mandapaId, comments }: { mandapaId: string; comments: MandapaComment[] }) {
+export default function Comments({ mandapaId, comments, failed }: { mandapaId: string | null; comments: MandapaComment[]; failed?: boolean }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [liked, setLiked] = useState<Record<string, boolean>>({});
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -199,6 +199,21 @@ export default function Comments({ mandapaId, comments }: { mandapaId: string; c
     writeLS(LIKED_KEY, JSON.stringify(Object.keys(now).filter((k) => now[k])));
   }
 
+  async function shareComment(c: MandapaComment) {
+    const u = `${window.location.href.split('#')[0]}#comments-h`;
+    const text = `${c.author_name}: ${c.body.slice(0, 120)}`;
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ title: 'চট্টগ্রামের পুজো', text, url: u });
+        return;
+      }
+      await navigator.clipboard.writeText(u);
+      alert('লিংক কপি হয়েছে।');
+    } catch {
+      /* বাতিল করলে কিছু হয় না */
+    }
+  }
+
   const total = comments.length;
   const countOf = (c: MandapaComment) => counts[c.id] ?? c.like_count;
 
@@ -209,6 +224,11 @@ export default function Comments({ mandapaId, comments }: { mandapaId: string; c
       </h2>
       <p className="muted">মণ্ডপ সম্পর্কে আপনার মতামত, অভিযোগ বা পরামর্শ জানান। ভদ্র ভাষায় লিখুন; অন্যের ব্যক্তিগত তথ্য দেবেন না।</p>
 
+      {failed && (
+        <p role="alert" className="rounded-md bg-warnbg p-2 text-sm font-semibold text-err">
+          মন্তব্য লোড করা যায়নি। অ্যাডমিন: Supabase-এ sql/08 ও sql/09 ফাইল দুটি Run করুন।
+        </p>
+      )}
       <CommentForm mandapaId={mandapaId} parentId={null} />
 
       {tops.length === 0 && <p className="muted">এখনো কোনো মন্তব্য নেই। প্রথম মন্তব্যটি আপনিই করুন।</p>}
@@ -222,6 +242,9 @@ export default function Comments({ mandapaId, comments }: { mandapaId: string; c
               <LikeButton c={c} liked={!!liked[c.id]} count={countOf(c)} onToggle={onToggle} />
               <button type="button" className="text-sm font-semibold text-accent" onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}>
                 ↩ রিপ্লাই দিন
+              </button>
+              <button type="button" className="text-sm font-semibold text-muted" onClick={() => void shareComment(c)}>
+                ⤴ শেয়ার
               </button>
             </div>
 

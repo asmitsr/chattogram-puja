@@ -3,7 +3,7 @@
 import { createAnonClient } from '@/lib/supabase/anon';
 
 export interface CommentInput {
-  mandapaId: string;
+  mandapaId: string | null;
   parentId: string | null;
   name: string;
   anonymous: boolean;
@@ -23,7 +23,7 @@ export async function postComment(input: CommentInput): Promise<{ ok: boolean; e
   if (!Number.isFinite(started) || Date.now() - started < 2500) {
     return { ok: false, error: 'একটু অপেক্ষা করে আবার চাপুন।' };
   }
-  if (!UUID.test(input.mandapaId) || (input.parentId !== null && !UUID.test(input.parentId))) {
+  if ((input.mandapaId !== null && !UUID.test(input.mandapaId)) || (input.parentId !== null && !UUID.test(input.parentId))) {
     return { ok: false, error: 'অনুরোধটি ঠিক নয়।' };
   }
 

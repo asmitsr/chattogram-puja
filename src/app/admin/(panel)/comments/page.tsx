@@ -11,7 +11,7 @@ export default async function AdminComments({ searchParams }: { searchParams: { 
   const { data } = await supabase.from('comments').select('*').order('created_at', { ascending: false }).limit(150);
   const list = (data ?? []) as MandapaComment[];
 
-  const ids = Array.from(new Set(list.map((c) => c.mandapa_id)));
+  const ids = Array.from(new Set(list.map((c) => c.mandapa_id).filter((x): x is string => !!x)));
   const names = new Map<string, string>();
   if (ids.length) {
     const { data: ms } = await supabase.from('mandapas').select('id,name').in('id', ids);
@@ -39,8 +39,8 @@ export default async function AdminComments({ searchParams }: { searchParams: { 
           </div>
           <p className="muted text-sm">
             মণ্ডপ:{' '}
-            <Link href={`/mandapa/${c.mandapa_id}`} target="_blank">
-              {names.get(c.mandapa_id) ?? 'অজানা মণ্ডপ'}
+            <Link href={c.mandapa_id ? `/mandapa/${c.mandapa_id}` : '/map'} target="_blank">
+              {c.mandapa_id ? (names.get(c.mandapa_id) ?? 'অজানা মণ্ডপ') : 'ম্যাপ পাতা (সাধারণ মতামত)'}
             </Link>
           </p>
           <p className="whitespace-pre-line break-words">{c.body}</p>
