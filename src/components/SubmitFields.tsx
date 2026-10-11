@@ -1,6 +1,9 @@
 import PlacePicker from '@/components/PlacePicker';
-import LocationPicker from '@/components/LocationPicker';
 import { KIND_LABEL } from '@/lib/types';
+
+const MAP_ID = '1IhlYJKsVryrIXpckFWpbNXWLCxi6sWw';
+const MAP_EMBED = `https://www.google.com/maps/d/embed?mid=${MAP_ID}&ehbc=2E312F`;
+const MAP_OPEN = `https://www.google.com/maps/d/viewer?mid=${MAP_ID}`;
 
 // জমা দেওয়ার ফর্মের ঘরগুলো (ম্যাপ ও সময়সূচিসহ)
 export default function SubmitFields() {
@@ -37,9 +40,26 @@ export default function SubmitFields() {
         </label>
         <input id="contact" name="contact" className="input" maxLength={100} />
       </div>
-      <div className="space-y-2">
-        <h3 className="text-lg text-accent">মণ্ডপের অবস্থান (ম্যাপে চিহ্নিত করুন)</h3>
-        <LocationPicker />
+      <div>
+        <span className="label">মণ্ডপের অবস্থান (ম্যাপে দেখুন)</span>
+        <div className="relative w-full overflow-hidden rounded-md border border-line" style={{ paddingBottom: '75%' }}>
+          <iframe
+            src={MAP_EMBED}
+            title="মণ্ডপের অবস্থানের ম্যাপ"
+            className="absolute left-0 top-0 h-full w-full border-0"
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+        <div className="mt-3 flex justify-end">
+          <a href={MAP_OPEN} target="_blank" rel="noopener noreferrer" className="btn">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
+            </svg>
+            গুগল ম্যাপে খুলুন
+          </a>
+        </div>
       </div>
       <div className="space-y-4 rounded-md border border-line p-3">
         <h3 className="text-lg text-accent">সময়সূচি (জানা থাকলে)</h3>
