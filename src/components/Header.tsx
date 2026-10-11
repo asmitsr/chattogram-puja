@@ -5,8 +5,6 @@ const LINKS: [string, string][] = [
   ['/mandapa', 'পূজামণ্ডপ'],
   ['/map', 'ম্যাপ'],
   ['/schedule', 'সময়সূচি'],
-  ['/news', 'সংবাদ'],
-  ['/archive', 'আর্কাইভ'],
   ['/submit', 'তথ্য জমা দিন'],
 ];
 
