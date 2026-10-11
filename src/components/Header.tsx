@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import SiteLike from '@/components/SiteLike';
 
 const LINKS: [string, string][] = [
   ['/', 'হোম'],
@@ -15,6 +16,7 @@ export default function Header() {
         <Link href="/" className="font-display text-xl text-herofg no-underline">
           চট্টগ্রামের পুজো
         </Link>
+        <SiteLike compact />
       </div>
       <nav aria-label="প্রধান মেনু" className="wrap flex gap-1.5 overflow-x-auto pb-2">
         {LINKS.map(([href, label]) => (

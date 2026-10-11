@@ -1,12 +1,14 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getSiteLikes, setSiteLike } from '@/app/likes/actions';
 import { bn } from '@/lib/bn';
 import { voterId } from '@/lib/voter';
 
 // পুরো ওয়েবসাইটকে লাভ/লাইক দেওয়ার বোতাম ও মোট সংখ্যা
-export default function SiteLike() {
+export default function SiteLike({ compact = false }: { compact?: boolean }) {
+  const pathname = usePathname();
   const [count, setCount] = useState<number | null>(null);
   const [liked, setLiked] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -26,7 +28,8 @@ export default function SiteLike() {
   }, []);
 
   // ডেটাবেস প্রস্তুত না থাকলে (SQL চালানো না হলে) বা লোড না হলে কিছুই দেখানো হয় না
-  if (count === null) return null;
+  // compact (উপরের লাল ব্যানারে ছোট রূপ) শুধু হোমপেজে দেখায়
+  if (count === null || (compact && pathname !== '/')) return null;
 
   async function toggle() {
     if (busy) return;
@@ -44,6 +47,32 @@ export default function SiteLike() {
     }
     setLiked(!!r.liked);
     setCount(r.count ?? prev);
+  }
+
+  if (compact) {
+    return (
+      <div className="flex shrink-0 flex-col items-end leading-tight">
+        <span className="text-[11px] opacity-90">পেজটি ভালো লাগলে লাইক দিন</span>
+        <button
+          type="button"
+          onClick={() => void toggle()}
+          aria-pressed={liked}
+          aria-label={liked ? 'লাইক তুলে নিন' : 'পেজটিতে লাইক দিন'}
+          disabled={busy}
+          className={`mt-0.5 inline-flex min-h-[34px] items-center gap-1.5 rounded-full border px-3 text-sm font-semibold transition active:scale-95 disabled:opacity-70 ${
+            liked ? 'border-herogold bg-herogold text-hero' : 'border-herogold bg-transparent text-herofg'
+          }`}
+        >
+          <span aria-hidden="true" className="text-base leading-none">
+            {liked ? '❤️' : '🤍'}
+          </span>
+          {liked ? 'লাইক দিয়েছেন' : 'লাইক'}
+          <span aria-live="polite" className="opacity-95">
+            · {bn(count)}
+          </span>
+        </button>
+      </div>
+    );
   }
 
   return (
