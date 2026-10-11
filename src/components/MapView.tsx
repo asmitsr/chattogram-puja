@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 
 export interface Pin {
@@ -33,8 +33,22 @@ function omIcon(L: any, size: number) {
   });
 }
 
-export default function MapView({ pins, height = 420, wheelZoom = false, fitAll = true }: { pins: Pin[]; height?: number | string; wheelZoom?: boolean; fitAll?: boolean }) {
+export default function MapView({
+  pins,
+  height = 420,
+  wheelZoom = false,
+  fitAll = true,
+  fullscreenToggle = false,
+}: {
+  pins: Pin[];
+  height?: number | string;
+  wheelZoom?: boolean;
+  fitAll?: boolean;
+  fullscreenToggle?: boolean;
+}) {
   const el = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<any>(null);
+  const [full, setFull] = useState(false);
 
   useEffect(() => {
     let map: any = null;
@@ -46,6 +60,7 @@ export default function MapView({ pins, height = 420, wheelZoom = false, fitAll 
       if (cancelled || !el.current) return;
 
       map = L.map(el.current, { scrollWheelZoom: wheelZoom, tap: true }).setView(CENTER, 12);
+      mapRef.current = map;
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors',
@@ -105,17 +120,51 @@ export default function MapView({ pins, height = 420, wheelZoom = false, fitAll 
     return () => {
       cancelled = true;
       if (map) map.remove();
+      mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pins]);
 
+  // ফুল-স্ক্রিন বদলালে ম্যাপের মাপ ঠিক করা, পেছনের পাতার স্ক্রল বন্ধ রাখা, Esc চাপলে বের হওয়া
+  useEffect(() => {
+    if (!fullscreenToggle) return;
+    document.body.style.overflow = full ? 'hidden' : '';
+    const t = setTimeout(() => mapRef.current && mapRef.current.invalidateSize(), 60);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFull(false);
+    };
+    if (full) window.addEventListener('keydown', onKey);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [full, fullscreenToggle]);
+
   return (
-    <div
-      ref={el}
-      style={{ height }}
-      className="z-0 w-full overflow-hidden rounded-md border border-line"
-      role="application"
-      aria-label="ম্যাপ"
-    />
+    <div className={full ? 'fixed inset-0 z-[2000] bg-neutral-100' : 'relative'}>
+      <div
+        ref={el}
+        style={{ height: full ? '100dvh' : height }}
+        className={`z-0 w-full overflow-hidden border-line ${full ? '' : 'rounded-md border'}`}
+        role="application"
+        aria-label="ম্যাপ"
+      />
+      {fullscreenToggle && (
+        <button
+          type="button"
+          onClick={() => setFull((v) => !v)}
+          aria-label={full ? 'ফুল-স্ক্রিন বন্ধ করুন' : 'ফুল-স্ক্রিনে দেখুন'}
+          aria-pressed={full}
+          className="absolute right-2.5 top-2.5 flex h-11 items-center justify-center gap-1.5 rounded-full bg-white px-4 text-sm font-semibold text-neutral-800 shadow-lg ring-1 ring-black/10 active:bg-neutral-100"
+          style={{ zIndex: 1000, top: full ? 'max(0.625rem, env(safe-area-inset-top))' : undefined }}
+        >
+          <span aria-hidden="true" className="text-lg leading-none">
+            {full ? '✕' : '⛶'}
+          </span>
+          {full ? 'বন্ধ করুন' : 'ফুল-স্ক্রিন'}
+        </button>
+      )}
+    </div>
   );
 }

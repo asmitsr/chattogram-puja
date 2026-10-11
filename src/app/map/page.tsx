@@ -30,7 +30,7 @@ export default async function MapPage() {
           {noLoc > 0 && <> আরও {bn(noLoc)}টি মণ্ডপের সঠিক অবস্থান এখনো যোগ হয়নি।</>}
         </p>
         {pins.length > 0 ? (
-          <MapView pins={pins} height="75vh" wheelZoom />
+          <MapView pins={pins} height="clamp(260px, 38vh, 420px)" wheelZoom fullscreenToggle />
         ) : (
           <p className="card">এখনো ম্যাপে দেখানোর মতো অবস্থানসহ কোনো মণ্ডপ নেই।</p>
         )}
