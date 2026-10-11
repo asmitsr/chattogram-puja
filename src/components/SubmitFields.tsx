@@ -1,3 +1,4 @@
+import PlacePicker from '@/components/PlacePicker';
 import LocationPicker from '@/components/LocationPicker';
 import { KIND_LABEL } from '@/lib/types';
 
@@ -23,17 +24,12 @@ export default function SubmitFields() {
         </label>
         <input id="name" name="name" className="input" required minLength={3} maxLength={150} />
       </div>
-      <div>
-        <label className="label" htmlFor="area">
-          এলাকা
-        </label>
-        <input id="area" name="area" className="input" maxLength={100} placeholder="যেমন: আন্দরকিল্লা" />
-      </div>
+      <PlacePicker />
       <div>
         <label className="label" htmlFor="address">
-          ঠিকানা
+          বিস্তারিত ঠিকানা (রাস্তা, গলি, বাড়ি/মোড়ের নাম)
         </label>
-        <input id="address" name="address" className="input" maxLength={300} />
+        <input id="address" name="address" className="input" maxLength={300} placeholder="যেমন: ৫ নম্বর গলি, কালীবাড়ি মোড়ের পাশে" />
       </div>
       <div>
         <label className="label" htmlFor="contact">

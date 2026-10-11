@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { isValidPlace } from '@/lib/ctgPlaces';
 import { createAnonClient } from '@/lib/supabase/anon';
 
 const KINDS = ['new_mandapa', 'correction', 'schedule', 'news'];
@@ -30,7 +31,8 @@ function normalizePhone(raw: string): string | null {
 function readInfo(formData: FormData) {
   const kind = text(formData, 'kind', 20);
   const name = text(formData, 'name', 150);
-  const area = text(formData, 'area', 100);
+  const thana = text(formData, 'thana', 60);
+  const locality = text(formData, 'locality', 100);
   const address = text(formData, 'address', 300);
   const contact = text(formData, 'contact', 100);
   const detail = text(formData, 'detail', 2000);
@@ -58,11 +60,14 @@ function readInfo(formData: FormData) {
     longitude = lo.toFixed(6);
   }
 
+  if (!isValidPlace(thana, locality)) fail('থানা/উপজেলা ও এলাকা তালিকা থেকে বেছে নিন।');
+  const area = `${locality.startsWith('তালিকায় নেই') ? 'এলাকা ঠিকানায় লেখা' : locality}, ${thana}, চট্টগ্রাম`;
+
   if (!KINDS.includes(kind)) fail('তথ্যের ধরন ঠিক নয়।');
   if (name.length < 3) fail('মণ্ডপের নাম লিখুন (কমপক্ষে ৩ অক্ষর)।');
   if (detail.length < 10) fail('বিস্তারিত অন্তত ১০ অক্ষরে লিখুন।');
 
-  return { kind, payload: { name, area, address, contact, detail, latitude, longitude, puja_plan: pujaPlan, anjali_time: anjali, bisorjon_time: bisorjon } };
+  return { kind, payload: { name, area, thana, locality, address, contact, detail, latitude, longitude, puja_plan: pujaPlan, anjali_time: anjali, bisorjon_time: bisorjon } };
 }
 
 // জমা: নাম ও মোবাইল নম্বর দিয়ে, লগইন লাগে না
