@@ -35,19 +35,39 @@ export async function approveSubmission(formData: FormData): Promise<void> {
   const { supabase, user } = await requireAdmin();
   const id = val(formData, 'id');
   const note = nz(val(formData, 'note'));
+  // mode=publish: সঙ্গে সঙ্গে সাইটে প্রকাশ; mode=draft: খসড়া করে সম্পাদনার পাতা খোলা
+  const mode = val(formData, 'mode') === 'draft' ? 'draft' : 'publish';
+  const back = '/admin/submissions';
+
   const { data: sub } = await supabase.from('submissions').select('*').eq('id', id).maybeSingle();
-  if (!sub) go('/admin/submissions', 'err', 'জমাটি পাওয়া যায়নি।');
-  if (sub.status !== 'pending') go('/admin/submissions', 'err', 'এটি আগেই দেখা হয়েছে।');
+  if (!sub) go(back, 'err', 'জমাটি পাওয়া যায়নি।');
+  if (sub.status !== 'pending') go(back, 'err', 'এটি আগেই দেখা হয়েছে।');
+  const p = sub.payload as Record<string, string>;
+
+  // আগে জমাটি "অনুমোদিত" দাবি করা হয়; দুবার চাপলেও দ্বিতীয়বার কিছু হবে না (ডুপ্লিকেট মণ্ডপ হবে না)
+  const { data: claimed } = await supabase
+    .from('submissions')
+    .update({ status: 'approved', admin_note: note, reviewed_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('status', 'pending')
+    .select('id');
+  if (!claimed || claimed.length === 0) go(back, 'err', 'এটি আগেই দেখা হয়েছে।');
+
+  const undo = () => supabase.from('submissions').update({ status: 'pending', admin_note: null, reviewed_at: null }).eq('id', id);
 
   let newId: string | null = null;
+  let createdKind: 'mandapa' | 'news' | null = null;
+
   if (sub.kind === 'new_mandapa') {
     const year = pickCurrent(await getYears(supabase));
-    if (!year) go('/admin/submissions', 'err', 'আগে একটি পূজাবর্ষ তৈরি করুন।');
-    const p = sub.payload as Record<string, string>;
+    if (!year) {
+      await undo();
+      go(back, 'err', 'আগে একটি পূজাবর্ষ তৈরি করুন।');
+    }
     const la = Number(p.latitude);
     const lo = Number(p.longitude);
     const hasPos = !!p.latitude && !!p.longitude && Number.isFinite(la) && Number.isFinite(lo);
-    // সময়সূচির তথ্য হারিয়ে না যেতে বিবরণের নিচে জুড়ে দেওয়া হয়; অ্যাডমিন প্রকাশের আগে মিলিয়ে নেবেন
+    // সময়সূচির তথ্য হারিয়ে না যেতে বিবরণের নিচে জুড়ে দেওয়া হয়
     const extra = [
       p.puja_plan ? `কোন দিন কী পূজা:\n${p.puja_plan}` : '',
       p.anjali_time ? `অঞ্জলির সময়: ${p.anjali_time}` : '',
@@ -67,23 +87,49 @@ export async function approveSubmission(formData: FormData): Promise<void> {
         description: nz(description),
         latitude: hasPos ? la : null,
         longitude: hasPos ? lo : null,
-        status: 'draft',
+        status: mode === 'publish' ? 'published' : 'draft',
       })
       .select('id')
       .single();
-    if (error || !created) go('/admin/submissions', 'err', 'মণ্ডপ তৈরি করা যায়নি।');
+    if (error || !created) {
+      await undo();
+      go(back, 'err', 'মণ্ডপ তৈরি করা যায়নি। জমাটি আবার অপেক্ষমাণ করা হয়েছে।');
+    }
     newId = created.id as string;
+    createdKind = 'mandapa';
+  } else if (sub.kind === 'news') {
+    const year = pickCurrent(await getYears(supabase));
+    const { data: created, error } = await supabase
+      .from('news')
+      .insert({
+        year_id: year?.id ?? null,
+        title: p.name,
+        body: p.detail || p.name,
+        status: mode === 'publish' ? 'published' : 'draft',
+        published_at: mode === 'publish' ? new Date().toISOString() : null,
+      })
+      .select('id')
+      .single();
+    if (error || !created) {
+      await undo();
+      go(back, 'err', 'সংবাদ তৈরি করা যায়নি। জমাটি আবার অপেক্ষমাণ করা হয়েছে।');
+    }
+    newId = created.id as string;
+    createdKind = 'news';
   }
 
-  await supabase
-    .from('submissions')
-    .update({ status: 'approved', admin_note: note, reviewed_at: new Date().toISOString() })
-    .eq('id', id);
-  await logActivity(supabase, user, 'submission.approve', 'submissions', id, { kind: sub.kind, mandapa_id: newId });
+  if (newId) await supabase.from('submissions').update({ payload: { ...p, record_id: newId } }).eq('id', id);
+  await logActivity(supabase, user, 'submission.approve', 'submissions', id, { kind: sub.kind, record_id: newId, mode });
   refresh();
 
-  if (newId) go(`/admin/mandapas/${newId}`, 'ok', 'খসড়া মণ্ডপ তৈরি হয়েছে। তথ্য মিলিয়ে অবস্থান বসান ও প্রকাশ করুন।');
-  go('/admin/submissions', 'ok', 'অনুমোদিত হয়েছে। প্রয়োজনীয় পরিবর্তন নিজে করে নিন।');
+  if (createdKind === 'mandapa') {
+    if (mode === 'draft') go(`/admin/mandapas/${newId}`, 'ok', 'খসড়া মণ্ডপ তৈরি হয়েছে। তথ্য মিলিয়ে প্রকাশ করুন।');
+    go(back, 'ok', `"${p.name}" অনুমোদিত হয়ে সাইটের মণ্ডপ-তালিকায় প্রকাশ হয়েছে।`);
+  }
+  if (createdKind === 'news') {
+    go(back, 'ok', mode === 'publish' ? 'সংবাদ প্রকাশ হয়েছে।' : 'সংবাদ খসড়া হিসেবে তৈরি হয়েছে (সংবাদ পাতা থেকে প্রকাশ করুন)।');
+  }
+  go(back, 'ok', 'অনুমোদিত হয়েছে। প্রয়োজনীয় পরিবর্তন নিজে করে নিন।');
 }
 
 export async function rejectSubmission(formData: FormData): Promise<void> {

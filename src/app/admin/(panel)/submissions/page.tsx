@@ -113,9 +113,20 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
                   মন্তব্য (ঐচ্ছিক)
                 </label>
                 <input id={`an-${s.id}`} name="note" className="input" />
-                <button className="btn w-full" type="submit">
-                  {s.kind === 'new_mandapa' ? 'অনুমোদন (খসড়া মণ্ডপ তৈরি হবে)' : 'অনুমোদন'}
-                </button>
+                {s.kind === 'new_mandapa' || s.kind === 'news' ? (
+                  <>
+                    <button className="btn w-full" type="submit" name="mode" value="publish">
+                      ✔ অনুমোদন ও এখনই প্রকাশ
+                    </button>
+                    <button className="btn-ghost w-full" type="submit" name="mode" value="draft">
+                      খসড়া করে আগে সম্পাদনা করব
+                    </button>
+                  </>
+                ) : (
+                  <button className="btn w-full" type="submit">
+                    অনুমোদন (পরিবর্তন নিজে করতে হবে)
+                  </button>
+                )}
               </form>
               <form action={rejectSubmission} className="space-y-2">
                 <input type="hidden" name="id" value={s.id} />
