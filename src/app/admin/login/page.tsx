@@ -1,11 +1,15 @@
 import Flash from '@/components/Flash';
+import PasswordInput from '@/components/PasswordInput';
 import { loginAdmin } from './actions';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'অ্যাডমিন লগইন', robots: { index: false, follow: false } };
 
 const MESSAGES: Record<string, string> = {
-  bad: 'ইমেইল বা পাসওয়ার্ড ভুল।',
+  bad: 'ইমেইল বা পাসওয়ার্ড ভুল। (পাসওয়ার্ডের পাশে "দেখান" চেপে মিলিয়ে নিন।)',
+  unconfirmed: 'এই ইমেইল এখনো নিশ্চিত (confirm) করা হয়নি। Supabase-এ Users থেকে ব্যবহারকারীকে confirm করুন।',
+  limit: 'অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।',
+  server: 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করুন।',
   notadmin: 'এই অ্যাকাউন্টের অ্যাডমিন অনুমতি নেই।',
 };
 
@@ -20,13 +24,13 @@ export default function AdminLogin({ searchParams }: { searchParams: { e?: strin
           <label className="label" htmlFor="email">
             ইমেইল
           </label>
-          <input id="email" name="email" type="email" autoComplete="username" required className="input" />
+          <input id="email" name="email" type="email" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="email" required className="input" />
         </div>
         <div>
           <label className="label" htmlFor="password">
             পাসওয়ার্ড
           </label>
-          <input id="password" name="password" type="password" autoComplete="current-password" required className="input" />
+          <PasswordInput id="password" name="password" />
         </div>
         <button type="submit" className="btn w-full">
           লগইন

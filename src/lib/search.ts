@@ -29,7 +29,8 @@ const BN: Record<string, string> = {
 };
 
 function collapse(s: string): string {
-  return s.replace(/(.)\1+/g, '$1');
+  // একই ধ্বনি পরপর থাকলে একটি; আর "ঙ্গ" (n+k) ও ইংরেজি "ng" যেন একই দাঁড়ায়
+  return s.replace(/(.)\1+/g, '$1').replace(/nk/g, 'n');
 }
 
 export function bengaliKey(text: string): string {
@@ -70,19 +71,40 @@ export function latinKey(text: string): string {
 
 const HAS_LATIN = /[a-z]/i;
 
+// লেখাকে শব্দে ভাগ করা (ফাঁকা, কমা, হাইফেন, বন্ধনী ইত্যাদিতে)। শব্দের সীমা না রাখলে
+// পাশাপাশি দুই শব্দের ব্যঞ্জন জুড়ে ভুল মিল তৈরি হয়।
+function words(text: string): string[] {
+  return text
+    .normalize('NFC')
+    .replace(/[‌‍]/g, '')
+    .split(/[^ঀ-৿a-zA-Z0-9]+/)
+    .filter(Boolean);
+}
+
+function wordKeys(text: string): string[] {
+  const keys: string[] = [];
+  for (const w of words(text)) {
+    const k = HAS_LATIN.test(w) ? latinKey(w) : bengaliKey(w);
+    if (k) keys.push(k);
+  }
+  return keys;
+}
+
 // খোঁজার প্রতিটি শব্দ লেখাটির কোথাও থাকলেই মিলে যায়।
 // বাংলায় লিখলে বাংলা বানান-মিল; ইংরেজিতে লিখলে ধ্বনি-মিল (এবং হুবহু ইংরেজি লেখাও)।
+// ধ্বনি-মিল হয় শুধু একটি শব্দের ভেতরে, শব্দ ডিঙিয়ে নয়।
 export function matches(haystack: string, query: string): boolean {
   const q = norm(query);
   if (!q) return true;
   const h = norm(haystack);
-  let hKey: string | null = null;
+  let keys: string[] | null = null;
   return q.split(' ').every((w) => {
     if (h.includes(w)) return true;
     if (!HAS_LATIN.test(w)) return false;
     const wk = latinKey(w);
     if (!wk) return false;
-    hKey ??= bengaliKey(haystack) + ' ' + latinKey(haystack);
-    return hKey.includes(wk);
+    keys ??= wordKeys(haystack);
+    // খুব ছোট (১-২ ধ্বনির) খোঁজা শুধু শব্দের শুরুতে মেলে, নইলে প্রায় সবই মিলে যেত
+    return wk.length < 3 ? keys.some((k) => k.startsWith(wk)) : keys.some((k) => k.includes(wk));
   });
 }
