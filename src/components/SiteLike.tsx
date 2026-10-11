@@ -59,13 +59,13 @@ export default function SiteLike({ compact = false }: { compact?: boolean }) {
           aria-pressed={liked}
           aria-label={liked ? 'লাইক তুলে নিন' : 'পেজটিতে লাইক দিন'}
           disabled={busy}
-          className="inline-flex min-h-[34px] items-center gap-2 rounded-full border border-herogold/70 bg-transparent px-3 text-[13px] font-medium text-herofg transition active:scale-95 disabled:opacity-70"
+          className="inline-flex min-h-[34px] items-center gap-1.5 bg-transparent py-1 text-[13px] font-medium text-herofg transition active:opacity-70 disabled:opacity-70"
         >
           <span aria-hidden="true" className="text-[15px] leading-none">
             {liked ? '❤️' : '🤍'}
           </span>
           <span>{liked ? 'লাইক দিয়েছেন' : 'লাইক দিন'}</span>
-          <span aria-live="polite" className="border-l border-herogold/50 pl-2 font-semibold tabular-nums text-herogold">
+          <span aria-live="polite" className="font-semibold tabular-nums text-herogold">
             {bn(count)}
           </span>
         </button>
