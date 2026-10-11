@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 
 export interface Pin {
@@ -18,6 +18,9 @@ export interface Pin {
 // চট্টগ্রাম শহরের মোটামুটি কেন্দ্র: শুধু ম্যাপ প্রথমে কোথায় খুলবে তার জন্য।
 // কোনো মণ্ডপের অবস্থান নয়।
 const CENTER: [number, number] = [22.3569, 91.7832];
+
+// ম্যাপের টাইল লোড হওয়ার আগে/মাঝে সাদা ফাঁকা না দেখিয়ে OpenStreetMap-এর মতো হালকা মাটি-রঙ দেখানো হয়
+const MAP_BG = '#f2efe9';
 
 // সব মণ্ডপের জন্য একই ॐ মার্কার: মেরুন বৃত্ত, সোনালি কিনারা, ভেতরে ॐ
 function omIcon(L: any, size: number) {
@@ -52,6 +55,7 @@ export default function MapView({
 
   useEffect(() => {
     let map: any = null;
+    let ro: ResizeObserver | null = null;
     let cancelled = false;
 
     (async () => {
@@ -63,6 +67,7 @@ export default function MapView({
       mapRef.current = map;
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
+        keepBuffer: 4,
         attribution: '© OpenStreetMap contributors',
       }).addTo(map);
 
@@ -115,37 +120,62 @@ export default function MapView({
       if (bounds.length === 1) map.setView(bounds[0], 16);
       else if (bounds.length > 1 && fitAll) map.fitBounds(bounds, { padding: [30, 30] });
       setTimeout(() => map && map.invalidateSize(), 200);
+
+      // কন্টেইনারের মাপ যেভাবেই বদলাক (ফুল-স্ক্রিন, ফোন ঘোরানো, ব্রাউজারের বার ওঠানামা) ম্যাপ নিজে থেকে মাপ ধরে নেবে
+      if (typeof ResizeObserver !== 'undefined') {
+        ro = new ResizeObserver(() => {
+          if (map) map.invalidateSize({ animate: false, pan: false });
+        });
+        ro.observe(el.current);
+      }
     })();
 
     return () => {
       cancelled = true;
+      if (ro) ro.disconnect();
       if (map) map.remove();
       mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pins]);
 
-  // ফুল-স্ক্রিন বদলালে ম্যাপের মাপ ঠিক করা, পেছনের পাতার স্ক্রল বন্ধ রাখা, Esc চাপলে বের হওয়া
+  // ফুল-স্ক্রিন টগল হওয়ার সঙ্গে সঙ্গেই (পেইন্টের আগে) ম্যাপের মাপ আবার হিসাব করা,
+  // পরে কয়েকবার আবার করা যাতে ব্রাউজারের বার/অ্যানিমেশন শেষ হওয়ার পরও টাইল পুরো ভরে যায়
+  useLayoutEffect(() => {
+    if (!fullscreenToggle) return;
+    const fix = () => {
+      const m = mapRef.current;
+      if (!m) return;
+      m.invalidateSize({ animate: false, pan: false });
+    };
+    fix();
+    const raf = requestAnimationFrame(fix);
+    const timers = [60, 200, 500].map((ms) => setTimeout(fix, ms));
+    return () => {
+      cancelAnimationFrame(raf);
+      timers.forEach(clearTimeout);
+    };
+  }, [full, fullscreenToggle]);
+
+  // পেছনের পাতার স্ক্রল বন্ধ রাখা ও Esc চাপলে বের হওয়া
   useEffect(() => {
     if (!fullscreenToggle) return;
     document.body.style.overflow = full ? 'hidden' : '';
-    const t = setTimeout(() => mapRef.current && mapRef.current.invalidateSize(), 60);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setFull(false);
     };
     if (full) window.addEventListener('keydown', onKey);
     return () => {
-      clearTimeout(t);
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
   }, [full, fullscreenToggle]);
 
   return (
-    <div className={full ? 'fixed inset-0 z-[2000] bg-neutral-100' : 'relative'}>
+    <div className={full ? 'fixed inset-0 z-[2000]' : 'relative'} style={{ backgroundColor: MAP_BG }}>
       <div
         ref={el}
-        style={{ height: full ? '100dvh' : height }}
+        style={{ height: full ? '100dvh' : height, backgroundColor: MAP_BG }}
         className={`z-0 w-full overflow-hidden border-line ${full ? '' : 'rounded-md border'}`}
         role="application"
         aria-label="ম্যাপ"
