@@ -1,6 +1,6 @@
 // গুগল মাই ম্যাপস এমবেড: কোনো এপিআই কি লাগে না। পূজা মানচিত্র একটি জায়গায় রাখা, দুই পেজেই ব্যবহার হয়।
-const MAP_ID = '1IhlYJKsVryrIXpckFWpbNXWLCxi6sWw';
-const MAP_EMBED = `https://www.google.com/maps/d/embed?mid=${MAP_ID}&ehbc=2E312F`;
+const MAP_ID = '11un1DpH9VJ2TsVjSuQs8ExkCsiKb_J0';
+const MAP_EMBED = `https://www.google.com/maps/d/u/0/embed?mid=${MAP_ID}&ehbc=2E312F`;
 const MAP_OPEN = `https://www.google.com/maps/d/viewer?mid=${MAP_ID}`;
 
 export default function PujaMapEmbed({ ratio = 75 }: { ratio?: number }) {
