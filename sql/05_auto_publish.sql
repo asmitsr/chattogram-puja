@@ -7,6 +7,7 @@
 --
 -- কী হয়: "নতুন মণ্ডপ" জমা দিলে প্রকাশিত মণ্ডপ তৈরি হয়, "সংবাদ বা অন্য তথ্য" জমা দিলে প্রকাশিত সংবাদ তৈরি হয়।
 -- জমাদাতার নাম ও মোবাইল নম্বর শুধু অ্যাডমিনের জমা-তালিকায় থাকে, সাইটে দেখা যায় না।
+-- (দ্বিতীয়বার চালানো: বিস্তারিত ঐচ্ছিক, আর পূজাবর্ষ না থাকলেও জমা নেয়)
 -- সীমা: সব স্বয়ংক্রিয় প্রকাশ মিলিয়ে ঘণ্টায় ৩০টি, দিনে ১৫০টি। বদলাতে নিচের ৩০ ও ১৫০ বদলান।
 -- ============================================================
 
@@ -36,7 +37,7 @@ begin
     raise exception 'invalid kind' using errcode = '22023';
   end if;
   if char_length(coalesce(p_name, '')) not between 3 and 150
-     or char_length(coalesce(p_detail, '')) not between 10 and 2000
+     or char_length(coalesce(p_detail, '')) > 2000
      or char_length(coalesce(p_area, '')) > 200
      or char_length(coalesce(p_address, '')) > 300
      or char_length(coalesce(p_contact, '')) > 100
@@ -64,17 +65,27 @@ begin
   if v_year is null then
     select id into v_year from public.puja_years where status = 'upcoming' order by year asc limit 1;
   end if;
+  -- সক্রিয় বা আসন্ন বছর না থাকলে: সবচেয়ে নতুন বছরটি নেওয়া হয়, কোনো বছরই না থাকলে চলতি বছরের পূজাবর্ষ নিজে তৈরি হয়
+  if v_year is null then
+    select id into v_year from public.puja_years order by year desc limit 1;
+  end if;
+  if v_year is null and p_kind = 'new_mandapa' then
+    insert into public.puja_years (year, title, status)
+    values (extract(year from now())::int, 'পূজা ' || extract(year from now())::int, 'active')
+    on conflict do nothing;
+    select id into v_year from public.puja_years order by year desc limit 1;
+  end if;
   if v_year is null and p_kind = 'new_mandapa' then
     raise exception 'no year' using errcode = 'P0002';
   end if;
 
   if p_kind = 'new_mandapa' then
     insert into public.mandapas (year_id, name, area, address, contact, description, latitude, longitude, status)
-    values (v_year, p_name, nullif(p_area, ''), nullif(p_address, ''), nullif(p_contact, ''), p_detail, p_lat, p_lng, 'published')
+    values (v_year, p_name, nullif(p_area, ''), nullif(p_address, ''), nullif(p_contact, ''), nullif(p_detail, ''), p_lat, p_lng, 'published')
     returning id into v_id;
   else
     insert into public.news (year_id, title, body, status, published_at)
-    values (v_year, p_name, p_detail, 'published', now())
+    values (v_year, p_name, coalesce(nullif(p_detail, ''), p_name), 'published', now())
     returning id into v_id;
   end if;
 

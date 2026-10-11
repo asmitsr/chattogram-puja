@@ -70,9 +70,9 @@ export default function SubmitFields() {
       </div>
       <div>
         <label className="label" htmlFor="detail">
-          বিস্তারিত
+          বিস্তারিত (ঐচ্ছিক)
         </label>
-        <textarea id="detail" name="detail" className="input min-h-[120px]" required minLength={10} maxLength={2000} />
+        <textarea id="detail" name="detail" className="input min-h-[120px]" maxLength={2000} />
       </div>
     </>
   );

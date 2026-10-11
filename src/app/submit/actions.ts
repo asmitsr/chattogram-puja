@@ -66,7 +66,6 @@ function readInfo(formData: FormData) {
 
   if (!KINDS.includes(kind)) fail('তথ্যের ধরন ঠিক নয়।');
   if (name.length < 3) fail('মণ্ডপের নাম লিখুন (কমপক্ষে ৩ অক্ষর)।');
-  if (detail.length < 10) fail('বিস্তারিত অন্তত ১০ অক্ষরে লিখুন।');
 
   return { kind, payload: { name, area, thana, locality, address, contact, detail, latitude, longitude, puja_plan: pujaPlan, anjali_time: anjali, bisorjon_time: bisorjon } };
 }
