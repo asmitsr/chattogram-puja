@@ -13,7 +13,7 @@ export default async function YearsPage({ searchParams }: { searchParams: { ok?:
     <div className="space-y-6">
       <h1 className="text-3xl text-accent">পূজাবর্ষ ব্যবস্থাপনা</h1>
       <p className="muted max-w-2xl">
-        প্রতি বছরের মণ্ডপ, সময়সূচি ও সংবাদ আলাদা থাকে। নতুন বছর তৈরি করলে সাইট নতুন করে বানাতে হয় না। একটি বছরকে "সক্রিয়" করলে আগের সক্রিয় বছর নিজে আর্কাইভ হয়ে যায়। আর্কাইভ করা তথ্য মোছে না।
+        প্রতি বছরের মণ্ডপ ও সময়সূচি আলাদা থাকে। নতুন বছর তৈরি করলে সাইট নতুন করে বানাতে হয় না। একটি বছরকে "সক্রিয়" করলে আগের সক্রিয় বছর নিজে আর্কাইভ হয়ে যায়। আর্কাইভ করা তথ্য মোছে না।
       </p>
       <Flash ok={searchParams.ok} err={searchParams.err} />
 
@@ -115,7 +115,7 @@ export default async function YearsPage({ searchParams }: { searchParams: { ok?:
               <input type="hidden" name="id" value={y.id} />
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" name="confirm" value="yes" />
-                এই বছর স্থায়ীভাবে মুছতে চাই (মণ্ডপ বা সংবাদ থাকলে মোছা যাবে না)
+                এই বছর স্থায়ীভাবে মুছতে চাই (মণ্ডপ থাকলে মোছা যাবে না)
               </label>
               <button className="btn-danger !min-h-0 !py-1" type="submit">
                 মুছুন

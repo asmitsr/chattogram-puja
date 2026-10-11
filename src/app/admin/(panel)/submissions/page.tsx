@@ -1,4 +1,5 @@
 import Flash from '@/components/Flash';
+import MapView from '@/components/MapView';
 import { requireAdmin } from '@/lib/admin';
 import { fmtDateTime } from '@/lib/bn';
 import type { Submission } from '@/lib/types';
@@ -32,7 +33,7 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
         {pending.map((s) => (
           <article key={s.id} className="card space-y-2">
             <div>
-              <span className="badge">{KIND_LABEL[s.kind]}</span>{' '}
+              <span className="badge">{KIND_LABEL[s.kind] ?? s.kind}</span>{' '}
               {s.user_id ? (
                 <span className="muted">
                   {names.get(s.user_id) ?? 'নাম নেই'} (Google লগইন) · {fmtDateTime(s.created_at)}
@@ -78,10 +79,18 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
                       className="underline"
                       target="_blank"
                       rel="noopener noreferrer"
-                      href={`https://www.openstreetmap.org/?mlat=${s.payload.latitude}&mlon=${s.payload.longitude}#map=17/${s.payload.latitude}/${s.payload.longitude}`}
+                      href={`https://www.google.com/maps/search/?api=1&query=${s.payload.latitude},${s.payload.longitude}`}
                     >
-                      ম্যাপে দেখুন
+                      গুগল ম্যাপে দেখুন
                     </a>
+                    {Number.isFinite(Number(s.payload.latitude)) && Number.isFinite(Number(s.payload.longitude)) && (
+                      <div className="mt-2">
+                        <MapView
+                          pins={[{ id: s.id, name: s.payload.name, area: s.payload.area ?? null, lat: Number(s.payload.latitude), lng: Number(s.payload.longitude) }]}
+                          height={220}
+                        />
+                      </div>
+                    )}
                   </dd>
                 </>
               )}
@@ -113,7 +122,7 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
                   মন্তব্য (ঐচ্ছিক)
                 </label>
                 <input id={`an-${s.id}`} name="note" className="input" />
-                {s.kind === 'new_mandapa' || s.kind === 'news' ? (
+                {s.kind === 'new_mandapa' ? (
                   <>
                     <button className="btn w-full" type="submit" name="mode" value="publish">
                       ✔ অনুমোদন ও এখনই প্রকাশ
@@ -150,7 +159,7 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
           <div key={s.id} className="card">
             <span className={s.status === 'approved' ? 'badge-ok' : 'badge-warn'}>{SUBMISSION_STATUS[s.status]}</span>{' '}
             <span className="muted">
-              {KIND_LABEL[s.kind]} · {fmtDateTime(s.reviewed_at ?? s.created_at)}
+              {KIND_LABEL[s.kind] ?? s.kind} · {fmtDateTime(s.reviewed_at ?? s.created_at)}
             </span>
             <div className="mt-1">{s.payload.name}</div>
             {s.submitter_name && (

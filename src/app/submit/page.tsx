@@ -12,7 +12,7 @@ export default function SubmitPage({ searchParams }: { searchParams: { ok?: stri
     <div className="wrap max-w-2xl py-6">
       <h1 className="text-3xl text-accent">তথ্য জমা দিন</h1>
       <p className="muted mb-4 mt-1">
-        নতুন মণ্ডপ, অবস্থান বা সময়সূচির তথ্য জানান। নতুন মণ্ডপ ও সংবাদ জমা দিলেই সাইটে দেখা যায়।
+        নতুন মণ্ডপ, অবস্থান বা সময়সূচির তথ্য জানান। জমা দেওয়া তথ্য অ্যাডমিন যাচাই করে অনুমোদন দিলে তবেই সাইটে ও ম্যাপে দেখা যায়।
       </p>
       <Flash ok={searchParams.ok} err={searchParams.err} />
 

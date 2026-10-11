@@ -29,16 +29,6 @@ export interface Schedule {
   details: string | null;
 }
 
-export interface NewsItem {
-  id: string;
-  year_id: string | null;
-  title: string;
-  body: string;
-  status: 'draft' | 'published';
-  published_at: string | null;
-  created_at: string;
-}
-
 export interface Notice {
   id: string;
   title: string;
@@ -53,12 +43,24 @@ export interface Submission {
   user_id: string | null;
   submitter_name: string | null;
   submitter_phone: string | null;
-  kind: 'new_mandapa' | 'correction' | 'schedule' | 'news';
+  kind: 'new_mandapa' | 'correction' | 'schedule';
   payload: Record<string, string>;
   status: 'pending' | 'approved' | 'rejected';
   admin_note: string | null;
   created_at: string;
   reviewed_at: string | null;
+}
+
+export interface MandapaComment {
+  id: string;
+  mandapa_id: string;
+  parent_id: string | null;
+  author_name: string;
+  body: string;
+  is_anonymous: boolean;
+  by_admin: boolean;
+  like_count: number;
+  created_at: string;
 }
 
 export const YEAR_STATUS: Record<string, string> = {
@@ -80,5 +82,4 @@ export const KIND_LABEL: Record<string, string> = {
   new_mandapa: 'নতুন মণ্ডপ',
   correction: 'ভুল তথ্যের সংশোধন',
   schedule: 'সময়সূচি',
-  news: 'সংবাদ বা অন্য তথ্য',
 };

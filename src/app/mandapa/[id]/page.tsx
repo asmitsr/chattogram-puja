@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import Comments from '@/components/Comments';
 import MapView from '@/components/MapView';
+import ShareBar from '@/components/ShareBar';
 import { createClient } from '@/lib/supabase/server';
 import { bn, dayKey, fmtDate, fmtTime } from '@/lib/bn';
-import type { Mandapa, Schedule } from '@/lib/types';
+import type { Mandapa, MandapaComment, Schedule } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,10 +15,12 @@ export default async function MandapaDetail({ params }: { params: { id: string }
   if (!data) notFound();
   const m = data as Mandapa;
 
-  const [{ data: y }, { data: s }] = await Promise.all([
+  const [{ data: y }, { data: s }, { data: cm }] = await Promise.all([
     supabase.from('puja_years').select('year,title').eq('id', m.year_id).maybeSingle(),
     supabase.from('schedules').select('*').eq('mandapa_id', m.id).order('starts_at'),
+    supabase.from('comments').select('*').eq('mandapa_id', m.id).order('created_at', { ascending: true }).limit(500),
   ]);
+  const comments = (cm ?? []) as MandapaComment[];
   const schedules = (s ?? []) as Schedule[];
 
   const groups = new Map<string, Schedule[]>();
@@ -62,6 +66,9 @@ export default async function MandapaDetail({ params }: { params: { id: string }
           <p className="muted">এই মণ্ডপের সঠিক অবস্থান এখনো ম্যাপে যোগ হয়নি।</p>
         )}
       </section>
+
+      <ShareBar title={m.name} />
+      <Comments mandapaId={m.id} comments={comments} />
 
       <section>
         <h2 className="mb-2 text-2xl text-accent">সময়সূচি</h2>

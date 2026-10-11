@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 // অ্যাডমিন সব টেবিলের ডেটা একটি JSON ফাইলে নামাতে পারে।
 // অনুমতি যাচাই করে ডেটাবেসের RLS; অ্যাডমিন ছাড়া অন্যরা অসম্পূর্ণ/খালি ডেটা পাবে, তাই আগে অ্যাডমিন যাচাই।
-const TABLES = ['puja_years', 'mandapas', 'schedules', 'news', 'notices', 'submissions', 'profiles', 'admins', 'activity_log'];
+const TABLES = ['puja_years', 'mandapas', 'schedules', 'comments', 'notices', 'submissions', 'profiles', 'admins', 'activity_log'];
 
 export async function GET() {
   const supabase = createClient();

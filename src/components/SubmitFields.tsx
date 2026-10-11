@@ -1,3 +1,4 @@
+import LocationPicker from '@/components/LocationPicker';
 import PlacePicker from '@/components/PlacePicker';
 import PujaMapEmbed from '@/components/PujaMapEmbed';
 import { KIND_LABEL } from '@/lib/types';
@@ -38,8 +39,14 @@ export default function SubmitFields() {
         <input id="contact" name="contact" className="input" maxLength={100} />
       </div>
       <div>
-        <span className="label">মণ্ডপের অবস্থান (ম্যাপে দেখুন)</span>
-        <PujaMapEmbed />
+        <span className="label">মণ্ডপের অবস্থান (ম্যাপে পিন বসান)</span>
+        <LocationPicker />
+        <details className="mt-3 rounded-md border border-line p-3">
+          <summary className="cursor-pointer font-semibold">মণ্ডপটি আগে থেকে ম্যাপে আছে কি না দেখুন</summary>
+          <div className="mt-3">
+            <PujaMapEmbed />
+          </div>
+        </details>
       </div>
       <div className="space-y-4 rounded-md border border-line p-3">
         <h3 className="text-lg text-accent">সময়সূচি (জানা থাকলে)</h3>

@@ -10,7 +10,7 @@ const LINKS: [string, string][] = [
   ['/admin/submissions', 'অপেক্ষমাণ জমা'],
   ['/admin/mandapas', 'মণ্ডপ'],
   ['/admin/years', 'পূজাবর্ষ'],
-  ['/admin/news', 'সংবাদ'],
+  ['/admin/comments', 'মন্তব্য'],
   ['/admin/notices', 'নোটিশ'],
   ['/admin/log', 'Activity Log'],
 ];

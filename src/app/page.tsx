@@ -4,8 +4,8 @@ import MandapaCard from '@/components/MandapaCard';
 import { createClient } from '@/lib/supabase/server';
 import { hasEnv } from '@/lib/auth';
 import { getYears, pickCurrent } from '@/lib/data';
-import { bn, fmtDate } from '@/lib/bn';
-import type { Mandapa, NewsItem, Notice } from '@/lib/types';
+import { bn } from '@/lib/bn';
+import type { Mandapa, Notice } from '@/lib/types';
 import { YEAR_STATUS } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -41,14 +41,6 @@ export default async function Home() {
     count = c ?? mandapas.length;
   }
 
-  const { data: n } = await supabase
-    .from('news')
-    .select('*')
-    .eq('status', 'published')
-    .order('published_at', { ascending: false })
-    .limit(3);
-  const news = (n ?? []) as NewsItem[];
-
   const { data: nt } = await supabase.from('notices').select('*').order('created_at', { ascending: false });
   const notices = (nt ?? []) as Notice[];
 
@@ -72,7 +64,7 @@ export default async function Home() {
           </div>
         ))}
 
-        <div className="grid gap-8 md:grid-cols-[3fr_2fr]">
+        <div>
           <section>
             <h2 className="text-2xl text-accent">{year ? `${bn(year.year)} সালের মণ্ডপ` : 'পূজামণ্ডপ'}</h2>
             <p className="muted mb-3 mt-1">
@@ -90,27 +82,6 @@ export default async function Home() {
             <p className="mt-4">
               <Link href="/mandapa" className="btn-ghost">
                 সব মণ্ডপ দেখুন
-              </Link>
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl text-accent">সাম্প্রতিক সংবাদ</h2>
-            {news.length ? (
-              <ul className="mt-3 space-y-3">
-                {news.map((x) => (
-                  <li key={x.id} className="border-b border-dashed border-line pb-3">
-                    <b>{x.title}</b>
-                    <div className="muted">{fmtDate(x.published_at)}</div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted mt-3">এখনো কোনো সংবাদ নেই।</p>
-            )}
-            <p className="mt-4">
-              <Link href="/news" className="btn-ghost">
-                সব সংবাদ
               </Link>
             </p>
           </section>

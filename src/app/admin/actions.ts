@@ -56,7 +56,7 @@ export async function approveSubmission(formData: FormData): Promise<void> {
   const undo = () => supabase.from('submissions').update({ status: 'pending', admin_note: null, reviewed_at: null }).eq('id', id);
 
   let newId: string | null = null;
-  let createdKind: 'mandapa' | 'news' | null = null;
+  let createdKind: 'mandapa' | null = null;
 
   if (sub.kind === 'new_mandapa') {
     const year = pickCurrent(await getYears(supabase));
@@ -97,25 +97,6 @@ export async function approveSubmission(formData: FormData): Promise<void> {
     }
     newId = created.id as string;
     createdKind = 'mandapa';
-  } else if (sub.kind === 'news') {
-    const year = pickCurrent(await getYears(supabase));
-    const { data: created, error } = await supabase
-      .from('news')
-      .insert({
-        year_id: year?.id ?? null,
-        title: p.name,
-        body: p.detail || p.name,
-        status: mode === 'publish' ? 'published' : 'draft',
-        published_at: mode === 'publish' ? new Date().toISOString() : null,
-      })
-      .select('id')
-      .single();
-    if (error || !created) {
-      await undo();
-      go(back, 'err', 'সংবাদ তৈরি করা যায়নি। জমাটি আবার অপেক্ষমাণ করা হয়েছে।');
-    }
-    newId = created.id as string;
-    createdKind = 'news';
   }
 
   if (newId) await supabase.from('submissions').update({ payload: { ...p, record_id: newId } }).eq('id', id);
@@ -125,9 +106,6 @@ export async function approveSubmission(formData: FormData): Promise<void> {
   if (createdKind === 'mandapa') {
     if (mode === 'draft') go(`/admin/mandapas/${newId}`, 'ok', 'খসড়া মণ্ডপ তৈরি হয়েছে। তথ্য মিলিয়ে প্রকাশ করুন।');
     go(back, 'ok', `"${p.name}" অনুমোদিত হয়ে সাইটের মণ্ডপ-তালিকায় প্রকাশ হয়েছে।`);
-  }
-  if (createdKind === 'news') {
-    go(back, 'ok', mode === 'publish' ? 'সংবাদ প্রকাশ হয়েছে।' : 'সংবাদ খসড়া হিসেবে তৈরি হয়েছে (সংবাদ পাতা থেকে প্রকাশ করুন)।');
   }
   go(back, 'ok', 'অনুমোদিত হয়েছে। প্রয়োজনীয় পরিবর্তন নিজে করে নিন।');
 }
@@ -303,57 +281,44 @@ export async function deleteYear(formData: FormData): Promise<void> {
   const id = val(formData, 'id');
   if (val(formData, 'confirm') !== 'yes') go(back, 'err', 'মুছতে নিশ্চিতকরণের ঘরে টিক দিন।');
   const { error } = await supabase.from('puja_years').delete().eq('id', id);
-  if (error) go(back, 'err', 'এই বছরে মণ্ডপ বা সংবাদ আছে, তাই মোছা যায়নি। আর্কাইভে রাখুন।');
+  if (error) go(back, 'err', 'এই বছরে মণ্ডপ আছে, তাই মোছা যায়নি। আর্কাইভে রাখুন।');
   await logActivity(supabase, user, 'year.delete', 'puja_years', id);
   refresh();
   go(back, 'ok', 'বছরটি মুছে ফেলা হয়েছে।');
 }
 
-/* ---------- সংবাদ ---------- */
+/* ---------- মন্তব্য ---------- */
 
-export async function saveNews(formData: FormData): Promise<void> {
+export async function deleteComment(formData: FormData): Promise<void> {
   const { supabase, user } = await requireAdmin();
-  const back = '/admin/news';
   const id = val(formData, 'id');
-  const title = val(formData, 'title');
-  const body = val(formData, 'body');
-  const status = val(formData, 'status');
-  if (title.length < 2 || body.length < 2) go(back, 'err', 'শিরোনাম ও লেখা দিন।');
-  if (!['draft', 'published'].includes(status)) go(back, 'err', 'অবস্থা ঠিক নয়।');
-
-  if (id) {
-    const { data: old } = await supabase.from('news').select('published_at').eq('id', id).maybeSingle();
-    const publishedAt = status === 'published' ? old?.published_at ?? new Date().toISOString() : old?.published_at ?? null;
-    const { error } = await supabase.from('news').update({ title, body, status, published_at: publishedAt }).eq('id', id);
-    if (error) go(back, 'err', 'সংরক্ষণ করা যায়নি।');
-    await logActivity(supabase, user, 'news.update', 'news', id, { title, status });
-  } else {
-    const { data, error } = await supabase
-      .from('news')
-      .insert({
-        title,
-        body,
-        status,
-        year_id: nz(val(formData, 'year_id')),
-        published_at: status === 'published' ? new Date().toISOString() : null,
-      })
-      .select('id')
-      .single();
-    if (error || !data) go(back, 'err', 'সংবাদ যোগ করা যায়নি।');
-    await logActivity(supabase, user, 'news.create', 'news', data.id, { title, status });
-  }
+  const back = '/admin/comments';
+  const { error } = await supabase.from('comments').delete().eq('id', id);
+  if (error) go(back, 'err', 'মন্তব্য মোছা যায়নি।');
+  await logActivity(supabase, user, 'comment.delete', 'comments', id);
   refresh();
-  go(back, 'ok', 'সংরক্ষণ হয়েছে।');
+  go(back, 'ok', 'মন্তব্য (ও এর রিপ্লাই) মুছে ফেলা হয়েছে।');
 }
 
-export async function deleteNews(formData: FormData): Promise<void> {
+export async function replyComment(formData: FormData): Promise<void> {
   const { supabase, user } = await requireAdmin();
-  const id = val(formData, 'id');
-  if (val(formData, 'confirm') !== 'yes') go('/admin/news', 'err', 'মুছতে নিশ্চিতকরণের ঘরে টিক দিন।');
-  await supabase.from('news').delete().eq('id', id);
-  await logActivity(supabase, user, 'news.delete', 'news', id);
+  const back = '/admin/comments';
+  const parentId = val(formData, 'parent_id');
+  const body = val(formData, 'body').slice(0, 1000);
+  if (body.length < 2) go(back, 'err', 'রিপ্লাই লিখুন।');
+  const { data: parent } = await supabase.from('comments').select('id,mandapa_id,parent_id').eq('id', parentId).maybeSingle();
+  if (!parent) go(back, 'err', 'মূল মন্তব্য পাওয়া যায়নি।');
+  // রিপ্লাই সবসময় মূল মন্তব্যের নিচে বসে
+  const rootId = parent.parent_id ?? parent.id;
+  const { data, error } = await supabase
+    .from('comments')
+    .insert({ mandapa_id: parent.mandapa_id, parent_id: rootId, author_name: 'অ্যাডমিন', body, by_admin: true })
+    .select('id')
+    .single();
+  if (error || !data) go(back, 'err', 'রিপ্লাই দেওয়া যায়নি।');
+  await logActivity(supabase, user, 'comment.reply', 'comments', data.id, { parent_id: rootId });
   refresh();
-  go('/admin/news', 'ok', 'সংবাদ মুছে ফেলা হয়েছে।');
+  go(back, 'ok', 'অ্যাডমিন হিসেবে রিপ্লাই দেওয়া হয়েছে।');
 }
 
 /* ---------- নোটিশ ---------- */

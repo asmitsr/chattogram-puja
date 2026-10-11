@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { isValidPlace } from '@/lib/ctgPlaces';
 import { createAnonClient } from '@/lib/supabase/anon';
 
-const KINDS = ['new_mandapa', 'correction', 'schedule', 'news'];
+const KINDS = ['new_mandapa', 'correction', 'schedule'];
 const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
 const OK_QUEUED = 'আপনার তথ্য জমা হয়েছে। অ্যাডমিন যাচাই করে অনুমোদন দিলে সাইটে প্রকাশ হবে। ধন্যবাদ।';
 
