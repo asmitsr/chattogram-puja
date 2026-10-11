@@ -51,6 +51,9 @@ export default function MapView({
 }) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
+  // ফুল-স্ক্রিন বদলালে ম্যাপ নতুন করে তৈরি হয়; আগের দেখা জায়গা ও জুম মনে রাখার জন্য
+  const viewRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
+  const restoreRef = useRef(false);
   const [full, setFull] = useState(false);
 
   useEffect(() => {
@@ -61,9 +64,10 @@ export default function MapView({
     (async () => {
       const mod: any = await import('leaflet');
       const L = mod.default ?? mod;
-      if (cancelled || !el.current) return;
+      const node = el.current;
+      if (cancelled || !node) return;
 
-      map = L.map(el.current, { scrollWheelZoom: wheelZoom, tap: true }).setView(CENTER, 12);
+      map = L.map(node, { scrollWheelZoom: wheelZoom, tap: true }).setView(CENTER, 12);
       mapRef.current = map;
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -117,7 +121,10 @@ export default function MapView({
         bounds.push([p.lat, p.lng]);
       });
 
-      if (bounds.length === 1) map.setView(bounds[0], 16);
+      const saved = restoreRef.current ? viewRef.current : null;
+      restoreRef.current = false;
+      if (saved) map.setView([saved.lat, saved.lng], saved.zoom, { animate: false });
+      else if (bounds.length === 1) map.setView(bounds[0], 16);
       else if (bounds.length > 1 && fitAll) map.fitBounds(bounds, { padding: [30, 30] });
       setTimeout(() => map && map.invalidateSize(), 200);
 
@@ -126,18 +133,23 @@ export default function MapView({
         ro = new ResizeObserver(() => {
           if (map) map.invalidateSize({ animate: false, pan: false });
         });
-        ro.observe(el.current);
+        ro.observe(node);
       }
     })();
 
     return () => {
       cancelled = true;
       if (ro) ro.disconnect();
-      if (map) map.remove();
+      if (map) {
+        const c = map.getCenter();
+        viewRef.current = { lat: c.lat, lng: c.lng, zoom: map.getZoom() };
+        map.remove();
+      }
       mapRef.current = null;
     };
+    // ফুল-স্ক্রিন বদলালেও ম্যাপ নতুন করে তৈরি হয়: কিছু ফোনে আগের ম্যাপ বড় করলে টাইল সাদা থেকে যেত
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pins]);
+  }, [pins, full]);
 
   // ফুল-স্ক্রিন টগল হওয়ার সঙ্গে সঙ্গেই (পেইন্টের আগে) ম্যাপের মাপ আবার হিসাব করা,
   // পরে কয়েকবার আবার করা যাতে ব্রাউজারের বার/অ্যানিমেশন শেষ হওয়ার পরও টাইল পুরো ভরে যায়
@@ -162,7 +174,10 @@ export default function MapView({
     if (!fullscreenToggle) return;
     document.body.style.overflow = full ? 'hidden' : '';
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setFull(false);
+      if (e.key === 'Escape') {
+        restoreRef.current = true;
+        setFull(false);
+      }
     };
     if (full) window.addEventListener('keydown', onKey);
     return () => {
@@ -174,6 +189,7 @@ export default function MapView({
   return (
     <div className={full ? 'fixed inset-0 z-[2000]' : 'relative'} style={{ backgroundColor: MAP_BG }}>
       <div
+        key={full ? 'full' : 'small'}
         ref={el}
         style={{ height: full ? '100dvh' : height, backgroundColor: MAP_BG }}
         className={`z-0 w-full overflow-hidden border-line ${full ? '' : 'rounded-md border'}`}
@@ -183,7 +199,10 @@ export default function MapView({
       {fullscreenToggle && (
         <button
           type="button"
-          onClick={() => setFull((v) => !v)}
+          onClick={() => {
+            restoreRef.current = true;
+            setFull((v) => !v);
+          }}
           aria-label={full ? 'ফুল-স্ক্রিন বন্ধ করুন' : 'ফুল-স্ক্রিনে দেখুন'}
           aria-pressed={full}
           className="absolute right-2.5 top-2.5 flex h-11 items-center justify-center gap-1.5 rounded-full bg-white px-4 text-sm font-semibold text-neutral-800 shadow-lg ring-1 ring-black/10 active:bg-neutral-100"
