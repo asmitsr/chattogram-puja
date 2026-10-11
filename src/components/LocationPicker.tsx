@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { findShortLink, inChattogram, parseCoords } from '@/lib/mapLink';
 
+type LL = { lat: number; lng: number };
+
 // চট্টগ্রাম শহরের কেন্দ্র (আন্দরকিল্লা/নিউমার্কেট এলাকা)
 const CENTER: [number, number] = [22.3384, 91.8317];
 // চট্টগ্রাম জেলা ঘিরে সীমা
@@ -23,6 +25,7 @@ export default function LocationPicker() {
   const markerRef = useRef<any>(null);
   const meRef = useRef<any[]>([]);
   const libRef = useRef<any>(null);
+  const pendingRef = useRef<{ lat: number; lng: number; zoom?: number } | null>(null);
 
   const [ready, setReady] = useState(false);
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
@@ -32,19 +35,30 @@ export default function LocationPicker() {
   const [resolving, setResolving] = useState(false);
   const [full, setFull] = useState(false);
 
+  function makeIcon(L: any) {
+    // বড় ধরার জায়গা (৪৪×৫২) যাতে ফোনে আঙুলে সহজে ধরে টানা যায়
+    return L.divIcon({
+      className: '',
+      html:
+        '<div style="width:44px;height:52px;display:flex;align-items:flex-start;justify-content:center;touch-action:none">' +
+        '<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#d93025;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.6);margin-top:2px"><div style="width:10px;height:10px;border-radius:50%;background:#fff;margin:8px"></div></div></div>',
+      iconSize: [44, 52],
+      iconAnchor: [22, 46],
+    });
+  }
+
   function place(lat: number, lng: number, zoom?: number) {
+    // অবস্থান সবসময় আগে মনে রাখা হয়, ম্যাপ তৈরি না থাকলেও ফর্মের সঙ্গে যাবে
+    setPos({ lat, lng });
     const L = libRef.current;
     const map = mapRef.current;
-    if (!L || !map) return;
+    if (!L || !map) {
+      pendingRef.current = { lat, lng, zoom };
+      return;
+    }
     if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
     else {
-      const icon = L.divIcon({
-        className: '',
-        html: '<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#d93025;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.6)"><div style="width:10px;height:10px;border-radius:50%;background:#fff;margin:8px"></div></div>',
-        iconSize: [34, 34],
-        iconAnchor: [17, 34],
-      });
-      const m = L.marker([lat, lng], { icon, draggable: true }).addTo(map);
+      const m = L.marker([lat, lng], { icon: makeIcon(L), draggable: true, autoPan: true, keyboard: false, bubblingMouseEvents: false }).addTo(map);
       m.on('dragend', () => {
         const p = m.getLatLng();
         setPos({ lat: p.lat, lng: p.lng });
@@ -53,7 +67,7 @@ export default function LocationPicker() {
       markerRef.current = m;
     }
     if (zoom) map.setView([lat, lng], zoom);
-    setPos({ lat, lng });
+    else map.panTo([lat, lng]);
   }
 
   useEffect(() => {
@@ -65,6 +79,11 @@ export default function LocationPicker() {
       libRef.current = L;
       const map = L.map(el.current, {
         scrollWheelZoom: true,
+        dragging: true,
+        touchZoom: true,
+        tap: true,
+        doubleClickZoom: true,
+        bounceAtZoomLimits: false,
         minZoom: 9,
         maxZoom: 20,
         maxBounds: BOUNDS,
@@ -86,12 +105,20 @@ export default function LocationPicker() {
       });
       mapRef.current = map;
       setReady(true);
-    })();
+      // ম্যাপ তৈরির আগে বসানো অবস্থান থাকলে এখন পিন হিসেবে দেখানো
+      const pend = pendingRef.current;
+      if (pend) {
+        pendingRef.current = null;
+        place(pend.lat, pend.lng, pend.zoom ?? 17);
+      }
+      setTimeout(() => map.invalidateSize(), 200);
+    })().catch(() => setMsg('ম্যাপ লোড হয়নি। পাতাটি রিফ্রেশ করুন। পিন না বসলেও নিচের ঘরে লিংক বা কোঅর্ডিনেট বসালে অবস্থান জমা যাবে।'));
     return () => {
       cancelled = true;
       if (mapRef.current) mapRef.current.remove();
       mapRef.current = null;
       markerRef.current = null;
+      setReady(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -171,14 +198,16 @@ export default function LocationPicker() {
       setMsg('আগে গুগল ম্যাপ থেকে কপি করা লিংক বা কোঅর্ডিনেট পেস্ট করুন।');
       return;
     }
-    let p = parseCoords(text);
+    let p: LL | null = parseCoords(text);
     if (!p) {
       const short = findShortLink(text);
       if (short) {
         setResolving(true);
         setMsg('গুগল ম্যাপের লিংক থেকে জায়গা খোঁজা হচ্ছে…');
+        const ctl = new AbortController();
+        const timer = setTimeout(() => ctl.abort(), 12000);
         try {
-          const res = await fetch('/api/resolve-map?u=' + encodeURIComponent(short));
+          const res = await fetch('/api/resolve-map?u=' + encodeURIComponent(short), { signal: ctl.signal });
           if (res.ok) {
             const d = await res.json();
             if (typeof d.lat === 'number' && typeof d.lng === 'number') p = { lat: d.lat, lng: d.lng };
@@ -186,6 +215,7 @@ export default function LocationPicker() {
         } catch {
           /* নিচের বার্তা দেখাবে */
         }
+        clearTimeout(timer);
         setResolving(false);
       }
     }
@@ -199,7 +229,7 @@ export default function LocationPicker() {
     }
     place(p.lat, p.lng, 17);
     setPaste('');
-    setMsg('গুগল ম্যাপের জায়গাটি পিন হিসেবে বসেছে। ঠিক জায়গায় না হলে পিনটি টেনে সরান।');
+    setMsg(`অবস্থান বসেছে (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})। ঠিক জায়গায় না হলে পিনটি টেনে সরান।`);
   }
 
   async function pasteClipboard() {
