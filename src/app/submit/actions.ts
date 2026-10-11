@@ -6,7 +6,8 @@ import { createAnonClient } from '@/lib/supabase/anon';
 
 const KINDS = ['new_mandapa', 'correction', 'schedule', 'news'];
 const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
-const OK_MSG = 'আপনার তথ্য জমা হয়েছে। অ্যাডমিন দেখে অনুমোদন দিলে সাইটে প্রকাশ হবে। ধন্যবাদ।';
+const OK_LIVE = 'আপনার তথ্য সাইটে প্রকাশ হয়েছে। ধন্যবাদ।';
+const OK_QUEUED = 'আপনার তথ্য জমা হয়েছে, অ্যাডমিন দেখবেন। ধন্যবাদ।';
 
 function text(f: FormData, k: string, max: number): string {
   return String(f.get(k) ?? '').trim().slice(0, max);
@@ -16,8 +17,8 @@ function fail(msg: string): never {
   redirect(`/submit?err=${encodeURIComponent(msg)}`);
 }
 
-function done(): never {
-  redirect(`/submit?ok=${encodeURIComponent(OK_MSG)}`);
+function done(msg: string = OK_QUEUED): never {
+  redirect(`/submit?ok=${encodeURIComponent(msg)}`);
 }
 
 // বাংলা অঙ্ক ও +88 সহ লিখলেও 01XXXXXXXXX রূপে আনে। ঠিক না হলে null।
@@ -89,6 +90,31 @@ export async function submitAnonymous(formData: FormData): Promise<void> {
   if (!phone) fail('মোবাইল নম্বর ঠিক নয়। যেমন লিখুন: 01XXXXXXXXX');
 
   const supabase = createAnonClient();
+
+  // নতুন মণ্ডপ ও সংবাদ: অনুমোদন ছাড়াই সঙ্গে সঙ্গে প্রকাশ
+  if (kind === 'new_mandapa' || kind === 'news') {
+    const la = payload.latitude === '' ? null : Number(payload.latitude);
+    const lo = payload.longitude === '' ? null : Number(payload.longitude);
+    const { error: pubErr } = await supabase.rpc('auto_publish', {
+      p_kind: kind,
+      p_name: payload.name,
+      p_area: payload.area,
+      p_address: payload.address,
+      p_contact: payload.contact,
+      p_detail: payload.detail,
+      p_lat: la,
+      p_lng: lo,
+      p_submitter_name: submitterName,
+      p_submitter_phone: phone,
+      p_payload: payload,
+    });
+    if (pubErr) {
+      if (pubErr.message.includes('limit')) fail('এই মুহূর্তে অনেক তথ্য জমা পড়ছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।');
+      if (pubErr.message.includes('no year')) fail('এখনো কোনো পূজাবর্ষ চালু হয়নি। পরে চেষ্টা করুন।');
+      fail('তথ্য প্রকাশ হয়নি। একটু পরে আবার চেষ্টা করুন।');
+    }
+    done(OK_LIVE);
+  }
   const { error } = await supabase.from('submissions').insert({
     user_id: null,
     kind,

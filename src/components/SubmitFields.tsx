@@ -33,7 +33,7 @@ export default function SubmitFields() {
       </div>
       <div>
         <label className="label" htmlFor="contact">
-          পূজা কমিটির যোগাযোগ (ঐচ্ছিক, সাইটে প্রকাশ হতে পারে)
+          পূজা কমিটির যোগাযোগ (ঐচ্ছিক, সাইটে প্রকাশ হবে)
         </label>
         <input id="contact" name="contact" className="input" maxLength={100} />
       </div>

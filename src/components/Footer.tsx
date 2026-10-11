@@ -5,13 +5,12 @@ export default function Footer() {
     <footer className="border-t-[3px] border-herogold bg-hero py-4 text-sm text-herofg">
       <div className="wrap flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <p className="opacity-95">
-          চট্টগ্রামের পুজো · মণ্ডপ, ম্যাপ ও সময়সূচি ·{' '}
-          <Link href="/admin/login" className="text-herofg opacity-70">
-            অ্যাডমিন
-          </Link>
+          চট্টগ্রামের পুজো · মণ্ডপ, ম্যাপ ও সময়সূচি
         </p>
         <div className="flex items-center gap-2">
-          <span className="text-xs opacity-80">তৈরি: Asmit Sarkar</span>
+          <Link href="/admin/login" className="text-xs text-herofg no-underline opacity-90">
+            অ্যাডমিন: Asmit Sarkar
+          </Link>
           <a
             href="tel:+8801859732897"
             aria-label="Asmit Sarkar-কে ফোন করুন: 01859732897"

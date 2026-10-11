@@ -142,6 +142,11 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
               {KIND_LABEL[s.kind]} · {fmtDateTime(s.reviewed_at ?? s.created_at)}
             </span>
             <div className="mt-1">{s.payload.name}</div>
+            {s.submitter_name && (
+              <div className="muted">
+                জমাদাতা: {s.submitter_name} · {s.submitter_phone}
+              </div>
+            )}
             {s.admin_note && <div className="muted">মন্তব্য: {s.admin_note}</div>}
           </div>
         ))}
