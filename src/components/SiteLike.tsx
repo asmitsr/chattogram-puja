@@ -51,24 +51,22 @@ export default function SiteLike({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     return (
-      <div className="flex shrink-0 flex-col items-end leading-tight">
-        <span className="text-[11px] opacity-90">পেজটি ভালো লাগলে লাইক দিন</span>
+      <div className="flex shrink-0 flex-col items-end gap-1 leading-none">
+        <span className="text-[11px] text-herofg/80">পেজটি ভালো লাগলে লাইক দিন</span>
         <button
           type="button"
           onClick={() => void toggle()}
           aria-pressed={liked}
           aria-label={liked ? 'লাইক তুলে নিন' : 'পেজটিতে লাইক দিন'}
           disabled={busy}
-          className={`mt-0.5 inline-flex min-h-[34px] items-center gap-1.5 rounded-full border px-3 text-sm font-semibold transition active:scale-95 disabled:opacity-70 ${
-            liked ? 'border-herogold bg-herogold text-hero' : 'border-herogold bg-transparent text-herofg'
-          }`}
+          className="inline-flex min-h-[34px] items-center gap-2 rounded-full border border-herogold/70 bg-transparent px-3 text-[13px] font-medium text-herofg transition active:scale-95 disabled:opacity-70"
         >
-          <span aria-hidden="true" className="text-base leading-none">
+          <span aria-hidden="true" className="text-[15px] leading-none">
             {liked ? '❤️' : '🤍'}
           </span>
-          {liked ? 'লাইক দিয়েছেন' : 'লাইক'}
-          <span aria-live="polite" className="opacity-95">
-            · {bn(count)}
+          <span>{liked ? 'লাইক দিয়েছেন' : 'লাইক দিন'}</span>
+          <span aria-live="polite" className="border-l border-herogold/50 pl-2 font-semibold tabular-nums text-herogold">
+            {bn(count)}
           </span>
         </button>
       </div>
