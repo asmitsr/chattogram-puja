@@ -1,3 +1,4 @@
+import LocationGuide from '@/components/LocationGuide';
 import LocationPicker from '@/components/LocationPicker';
 import PlacePicker from '@/components/PlacePicker';
 import MapView, { type Pin } from '@/components/MapView';
@@ -40,6 +41,7 @@ export default function SubmitFields({ pins = [] }: { pins?: Pin[] }) {
       </div>
       <div>
         <span className="label">মণ্ডপের অবস্থান (ম্যাপে পিন বসান)</span>
+        <LocationGuide />
         <LocationPicker />
         <details className="mt-3 rounded-md border border-line p-3">
           <summary className="cursor-pointer font-semibold">মণ্ডপটি আগে থেকে ম্যাপে আছে কি না দেখুন</summary>
