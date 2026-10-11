@@ -28,9 +28,10 @@ export default function MapView({ pins, height = 420 }: { pins: Pin[]; height?: 
       if (cancelled || !el.current) return;
 
       map = L.map(el.current, { scrollWheelZoom: false }).setView(CENTER, 12);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors',
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 20,
+        attribution: '© OpenStreetMap contributors © CARTO',
       }).addTo(map);
 
       const bounds: [number, number][] = [];

@@ -3,34 +3,42 @@
 import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 
-// চট্টগ্রাম শহরের কেন্দ্র (নিউমার্কেট/আন্দরকিল্লা এলাকা)
+// চট্টগ্রাম শহরের কেন্দ্র (আন্দরকিল্লা/নিউমার্কেট এলাকা)
 const CENTER: [number, number] = [22.3384, 91.8317];
-// চট্টগ্রাম জেলা ঘিরে সীমা: দক্ষিণ-পশ্চিম, উত্তর-পূর্ব
+// চট্টগ্রাম জেলা ঘিরে সীমা
 const BOUNDS: [[number, number], [number, number]] = [
   [21.8, 91.2],
   [23.2, 92.4],
 ];
 
-interface Hit {
-  name: string;
-  lat: number;
-  lng: number;
-}
+type LayerKey = 'clean' | 'osm' | 'sat';
+const LAYERS: { key: LayerKey; label: string }[] = [
+  { key: 'clean', label: 'পরিষ্কার মানচিত্র' },
+  { key: 'osm', label: 'সাধারণ মানচিত্র' },
+  { key: 'sat', label: 'স্যাটেলাইট' },
+];
 
-// ফোনের GPS, ম্যাপে চাপ, পিন টানা বা এলাকার নাম খুঁজে অবস্থান নির্ধারণ।
+const FAB =
+  'flex h-11 w-11 items-center justify-center rounded-full bg-white text-xl font-bold text-neutral-800 shadow-lg ring-1 ring-black/10 active:bg-neutral-100 disabled:opacity-60';
+
+// মোবাইল ম্যাপ অ্যাপের মতো লোকেশন বাছাই: জুম, ট্যাপ করে পিন, পিন টানা, GPS, স্যাটেলাইট, ফুল-স্ক্রিন।
 // অক্ষাংশ-দ্রাঘিমাংশ ব্যবহারকারীকে দেখানো হয় না; লুকানো ঘরে ফর্মের সঙ্গে যায়।
 export default function LocationPicker() {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
+  const meRef = useRef<any[]>([]);
   const libRef = useRef<any>(null);
+  const layersRef = useRef<Record<string, any>>({});
+  const currentLayer = useRef<any>(null);
+
   const [ready, setReady] = useState(false);
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
-  const [q, setQ] = useState('');
-  const [searching, setSearching] = useState(false);
-  const [hits, setHits] = useState<Hit[]>([]);
+  const [layer, setLayer] = useState<LayerKey>('clean');
+  const [menu, setMenu] = useState(false);
+  const [full, setFull] = useState(false);
 
   function place(lat: number, lng: number, zoom?: number) {
     const L = libRef.current;
@@ -40,9 +48,9 @@ export default function LocationPicker() {
     else {
       const icon = L.divIcon({
         className: '',
-        html: '<div style="width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#7a1424;border:3px solid #f0c766;box-shadow:0 2px 6px rgba(0,0,0,.55)"></div>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
+        html: '<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#d93025;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.6)"><div style="width:10px;height:10px;border-radius:50%;background:#fff;margin:8px"></div></div>',
+        iconSize: [34, 34],
+        iconAnchor: [17, 34],
       });
       const m = L.marker([lat, lng], { icon, draggable: true }).addTo(map);
       m.on('dragend', () => {
@@ -53,7 +61,6 @@ export default function LocationPicker() {
       markerRef.current = m;
     }
     if (zoom) map.setView([lat, lng], zoom);
-    else map.panTo([lat, lng]);
     setPos({ lat, lng });
   }
 
@@ -65,29 +72,37 @@ export default function LocationPicker() {
       if (cancelled || !el.current) return;
       libRef.current = L;
       const map = L.map(el.current, {
-        scrollWheelZoom: false,
+        scrollWheelZoom: true,
         minZoom: 9,
+        maxZoom: 20,
         maxBounds: BOUNDS,
         maxBoundsViscosity: 0.9,
-        zoomControl: true,
-      }).setView(CENTER, 13);
+        zoomControl: false,
+        attributionControl: true,
+      }).setView(CENTER, 14);
+      map.attributionControl.setPrefix(false);
 
-      const street = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors',
-      });
-      const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: 'Tiles © Esri',
-      });
-      street.addTo(map);
-      L.control.layers({ 'মানচিত্র': street, 'স্যাটেলাইট': sat }, {}, { position: 'topright', collapsed: true }).addTo(map);
+      layersRef.current = {
+        clean: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          subdomains: 'abcd',
+          maxZoom: 20,
+          attribution: '© OpenStreetMap contributors © CARTO',
+        }),
+        osm: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '© OpenStreetMap contributors',
+        }),
+        sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 19,
+          attribution: 'Tiles © Esri',
+        }),
+      };
       L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
 
       map.on('click', (e: any) => {
         place(e.latlng.lat, e.latlng.lng);
-        setHits([]);
-        setMsg('ম্যাপে অবস্থান বসানো হয়েছে। দরকারে পিনটি টেনে ঠিক করুন।');
+        setMenu(false);
+        setMsg('পিন বসানো হয়েছে। ঠিক জায়গায় না হলে পিনটি টেনে সরান।');
       });
       mapRef.current = map;
       setReady(true);
@@ -97,14 +112,44 @@ export default function LocationPicker() {
       if (mapRef.current) mapRef.current.remove();
       mapRef.current = null;
       markerRef.current = null;
+      currentLayer.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // বেস-ম্যাপ বদল
+  useEffect(() => {
+    if (!ready || !mapRef.current) return;
+    if (currentLayer.current) mapRef.current.removeLayer(currentLayer.current);
+    currentLayer.current = layersRef.current[layer];
+    currentLayer.current.addTo(mapRef.current);
+  }, [layer, ready]);
+
+  // ফুল-স্ক্রিন বদলালে ম্যাপের মাপ ঠিক করা
+  useEffect(() => {
+    if (!ready) return;
+    document.body.style.overflow = full ? 'hidden' : '';
+    const t = setTimeout(() => mapRef.current && mapRef.current.invalidateSize(), 60);
+    return () => {
+      clearTimeout(t);
+      document.body.style.overflow = '';
+    };
+  }, [full, ready]);
+
+  function showMe(lat: number, lng: number, acc: number) {
+    const L = libRef.current;
+    const map = mapRef.current;
+    meRef.current.forEach((x) => x.remove());
+    meRef.current = [
+      L.circle([lat, lng], { radius: Math.min(acc, 300), color: '#1a73e8', weight: 1, fillColor: '#1a73e8', fillOpacity: 0.15, interactive: false }).addTo(map),
+      L.circleMarker([lat, lng], { radius: 8, color: '#fff', weight: 3, fillColor: '#1a73e8', fillOpacity: 1, interactive: false }).addTo(map),
+    ];
+  }
+
   function useMyLocation() {
     if (!ready) return;
     if (!('geolocation' in navigator)) {
-      setMsg('আপনার ব্রাউজারে লোকেশন সুবিধা নেই। ম্যাপে চাপ দিয়ে বা নাম খুঁজে জায়গা বেছে নিন।');
+      setMsg('আপনার ব্রাউজারে লোকেশন সুবিধা নেই। ম্যাপে ট্যাপ করে জায়গা বেছে নিন।');
       return;
     }
     setBusy(true);
@@ -112,59 +157,30 @@ export default function LocationPicker() {
     navigator.geolocation.getCurrentPosition(
       (p) => {
         setBusy(false);
+        showMe(p.coords.latitude, p.coords.longitude, p.coords.accuracy || 50);
         place(p.coords.latitude, p.coords.longitude, 17);
-        setHits([]);
-        setMsg('আপনার বর্তমান লোকেশন বসানো হয়েছে। মণ্ডপ অন্য জায়গায় হলে ম্যাপে চাপ দিন বা পিন টেনে নিন।');
+        setMsg('আপনার বর্তমান লোকেশনে পিন বসেছে। মণ্ডপ অন্য জায়গায় হলে ম্যাপে ট্যাপ করুন বা পিন টেনে নিন।');
       },
       (err) => {
         setBusy(false);
         if (err.code === 1) {
-          setMsg('লোকেশনের অনুমতি দেওয়া হয়নি। ফোনের সেটিংসে ব্রাউজারের লোকেশন চালু করুন, অথবা ম্যাপে চাপ দিয়ে জায়গা বেছে নিন।');
+          setMsg('লোকেশনের অনুমতি দেওয়া হয়নি। ফোনের সেটিংসে ব্রাউজারের লোকেশন চালু করুন, অথবা ম্যাপে ট্যাপ করে জায়গা বেছে নিন।');
         } else if (err.code === 3) {
           setMsg('লোকেশন পেতে বেশি সময় লাগছে। ফোনের GPS (Location) চালু আছে কি দেখুন, তারপর আবার চাপুন।');
         } else {
-          setMsg('লোকেশন পাওয়া যায়নি। ফোনের Location চালু করে আবার চেষ্টা করুন, অথবা ম্যাপে চাপ দিন।');
+          setMsg('লোকেশন পাওয়া যায়নি। ফোনের Location চালু করে আবার চেষ্টা করুন, অথবা ম্যাপে ট্যাপ করুন।');
         }
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
     );
   }
 
-  // এলাকার নাম খোঁজা (OpenStreetMap Nominatim, শুধু চট্টগ্রাম অঞ্চলে)
-  async function search() {
-    const term = q.trim();
-    if (term.length < 2) {
-      setMsg('খুঁজতে এলাকা বা জায়গার নাম লিখুন।');
-      return;
-    }
-    setSearching(true);
-    setHits([]);
-    setMsg('খোঁজা হচ্ছে…');
-    try {
-      const url =
-        'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=bd&accept-language=bn,en' +
-        '&viewbox=91.3,23.0,92.3,21.8&bounded=1&q=' +
-        encodeURIComponent(term);
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('bad');
-      const data: { display_name: string; lat: string; lon: string }[] = await res.json();
-      const list: Hit[] = data
-        .map((d) => ({ name: d.display_name, lat: Number(d.lat), lng: Number(d.lon) }))
-        .filter((d) => Number.isFinite(d.lat) && Number.isFinite(d.lng));
-      if (list.length === 0) {
-        setMsg('চট্টগ্রামে এই নামে কিছু পাওয়া যায়নি। অন্য বানানে বা কাছের পরিচিত জায়গার নামে খুঁজুন, অথবা ম্যাপে চাপ দিন।');
-      } else if (list.length === 1) {
-        place(list[0].lat, list[0].lng, 17);
-        setMsg('জায়গাটি পাওয়া গেছে। ঠিক জায়গায় না হলে পিনটি টেনে সরান।');
-      } else {
-        setHits(list);
-        setMsg('নিচের তালিকা থেকে সঠিক জায়গাটি বেছে নিন।');
-      }
-    } catch {
-      setMsg('খোঁজা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন, অথবা ম্যাপে চাপ দিন।');
-    } finally {
-      setSearching(false);
-    }
+  function pinAtCenter() {
+    const map = mapRef.current;
+    if (!map) return;
+    const c = map.getCenter();
+    place(c.lat, c.lng);
+    setMsg('ম্যাপের মাঝখানে পিন বসেছে। ঠিক জায়গায় না হলে পিনটি টেনে সরান।');
   }
 
   function clear() {
@@ -176,65 +192,96 @@ export default function LocationPicker() {
     setMsg('অবস্থান মুছে ফেলা হয়েছে।');
   }
 
+  const status = msg || (pos ? 'পিন বসানো আছে।' : 'এখনো পিন বসানো হয়নি (ঐচ্ছিক)।');
+
   return (
     <div className="space-y-2">
-      <div className="flex gap-2">
-        <input
-          type="search"
-          className="input"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => {
-            // Enter চাপলে যেন পুরো ফর্ম জমা না হয়ে যায়
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              void search();
-            }
-          }}
-          placeholder="এলাকার নাম লিখে খুঁজুন, যেমন: আন্দরকিল্লা"
-          aria-label="ম্যাপে জায়গা খুঁজুন"
-          maxLength={100}
+      <div className={full ? 'fixed inset-0 z-[2000] bg-neutral-100' : 'relative'}>
+        <div
+          ref={el}
+          style={{ height: full ? '100dvh' : 400 }}
+          className="z-0 w-full overflow-hidden rounded-md border border-line"
         />
-        <button type="button" className="btn shrink-0" onClick={() => void search()} disabled={searching || !ready}>
-          {searching ? '…' : 'খুঁজুন'}
-        </button>
+
+        {/* ওপরের ডান: ম্যাপের ধরন ও ফুল-স্ক্রিন */}
+        <div className="absolute right-2.5 top-2.5 flex flex-col items-end gap-2" style={{ zIndex: 1000 }}>
+          <button type="button" className={FAB} aria-label="ম্যাপের ধরন বদলান" onClick={() => setMenu((v) => !v)}>
+            🗺
+          </button>
+          {menu && (
+            <div className="overflow-hidden rounded-lg bg-white text-sm text-neutral-800 shadow-lg ring-1 ring-black/10">
+              {LAYERS.map((l) => (
+                <button
+                  key={l.key}
+                  type="button"
+                  className={`block w-full px-4 py-2.5 text-left ${layer === l.key ? 'bg-blue-50 font-semibold text-blue-700' : ''}`}
+                  onClick={() => {
+                    setLayer(l.key);
+                    setMenu(false);
+                  }}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <button type="button" className={FAB} aria-label={full ? 'ফুল-স্ক্রিন বন্ধ করুন' : 'ফুল-স্ক্রিনে দেখুন'} onClick={() => setFull((v) => !v)}>
+            {full ? '✕' : '⛶'}
+          </button>
+        </div>
+
+        {/* ডান নিচে: জুম ও আমার লোকেশন */}
+        <div className="absolute right-2.5 flex flex-col gap-2" style={{ zIndex: 1000, bottom: full ? 150 : 54 }}>
+          <button type="button" className={FAB} aria-label="জুম ইন" onClick={() => mapRef.current && mapRef.current.zoomIn()}>
+            +
+          </button>
+          <button type="button" className={FAB} aria-label="জুম আউট" onClick={() => mapRef.current && mapRef.current.zoomOut()}>
+            −
+          </button>
+          <button type="button" className={`${FAB} text-blue-600`} aria-label="আমার লোকেশন" onClick={useMyLocation} disabled={busy || !ready}>
+            {busy ? '…' : '◎'}
+          </button>
+        </div>
+
+        {/* নিচে: মাঝখানে পিন বসান */}
+        <div className="absolute left-2.5 flex items-center gap-2" style={{ zIndex: 1000, bottom: full ? 96 : 10 }}>
+          <button
+            type="button"
+            className="rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 shadow-lg ring-1 ring-black/10 active:bg-neutral-100"
+            onClick={pinAtCenter}
+            disabled={!ready}
+          >
+            📍 মাঝখানে পিন বসান
+          </button>
+        </div>
+
+        {full && (
+          <div className="absolute inset-x-0 bottom-0 space-y-2 bg-white p-3 text-neutral-800 shadow-[0_-4px_12px_rgba(0,0,0,.15)]" style={{ zIndex: 1000 }}>
+            <p aria-live="polite" className="text-sm">
+              {status}
+            </p>
+            <button type="button" className="btn w-full" onClick={() => setFull(false)}>
+              ঠিক আছে, ফর্মে ফিরুন
+            </button>
+          </div>
+        )}
       </div>
-      {hits.length > 0 && (
-        <ul className="max-h-48 overflow-y-auto rounded-md border border-line bg-surface text-sm">
-          {hits.map((h, i) => (
-            <li key={`${h.lat}-${h.lng}-${i}`}>
-              <button
-                type="button"
-                className="block w-full border-b border-line px-3 py-2 text-left last:border-b-0"
-                onClick={() => {
-                  place(h.lat, h.lng, 17);
-                  setHits([]);
-                  setMsg('জায়গাটি বসানো হয়েছে। ঠিক জায়গায় না হলে পিনটি টেনে সরান।');
-                }}
-              >
-                {h.name}
-              </button>
-            </li>
-          ))}
-        </ul>
+
+      {!full && (
+        <>
+          <p className="muted">ম্যাপে মণ্ডপের জায়গায় ট্যাপ করে পিন বসান, পিনটি টেনে সরানো যায়। বড় করে দেখতে ওপরের ডানের ⛶ বোতাম চাপুন।</p>
+          <p aria-live="polite" className={pos ? 'text-sm font-medium' : 'muted'}>
+            {status}
+          </p>
+          {pos && (
+            <button type="button" className="btn-ghost" onClick={clear}>
+              পিন মুছুন
+            </button>
+          )}
+        </>
       )}
-
-      <button type="button" className="btn-ghost w-full" onClick={useMyLocation} disabled={busy || !ready}>
-        {busy ? 'লোকেশন খোঁজা হচ্ছে…' : '📍 আমার লোকেশন চালু করে বসান'}
-      </button>
-
-      <div ref={el} style={{ height: 360 }} className="z-0 w-full overflow-hidden rounded-md border border-line" />
-      <p className="muted">ম্যাপের ডান কোণার বোতামে "স্যাটেলাইট" দৃশ্যও বেছে নিতে পারেন। মণ্ডপের জায়গায় চাপ দিন, পিনটি টেনেও সরানো যায়।</p>
-      <p aria-live="polite" className={pos ? 'text-sm font-medium' : 'muted'}>
-        {msg || (pos ? 'অবস্থান বসানো হয়েছে।' : 'এখনো অবস্থান বসানো হয়নি (ঐচ্ছিক)।')}
-      </p>
       <input type="hidden" name="latitude" value={pos ? pos.lat.toFixed(6) : ''} />
       <input type="hidden" name="longitude" value={pos ? pos.lng.toFixed(6) : ''} />
-      {pos && (
-        <button type="button" className="btn-ghost" onClick={clear}>
-          অবস্থান মুছুন
-        </button>
-      )}
     </div>
   );
 }
