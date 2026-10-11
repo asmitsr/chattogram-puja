@@ -27,10 +27,9 @@ export default function MapPicker({ lat, lng }: { lat: number | null; lng: numbe
         lat !== null && lng !== null ? [lat, lng] : CENTER,
         lat !== null && lng !== null ? 16 : 12,
       );
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd',
-        maxZoom: 20,
-        attribution: '© OpenStreetMap contributors © CARTO',
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors',
       }).addTo(map);
       map.on('click', (e: any) => {
         setLa(e.latlng.lat.toFixed(6));
