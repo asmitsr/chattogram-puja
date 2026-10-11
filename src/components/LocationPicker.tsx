@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
+import { findShortLink, inChattogram, parseCoords } from '@/lib/mapLink';
 
 // চট্টগ্রাম শহরের কেন্দ্র (আন্দরকিল্লা/নিউমার্কেট এলাকা)
 const CENTER: [number, number] = [22.3384, 91.8317];
@@ -9,13 +10,6 @@ const CENTER: [number, number] = [22.3384, 91.8317];
 const BOUNDS: [[number, number], [number, number]] = [
   [21.8, 91.2],
   [23.2, 92.4],
-];
-
-type LayerKey = 'clean' | 'osm' | 'sat';
-const LAYERS: { key: LayerKey; label: string }[] = [
-  { key: 'clean', label: 'পরিষ্কার মানচিত্র' },
-  { key: 'osm', label: 'সাধারণ মানচিত্র' },
-  { key: 'sat', label: 'স্যাটেলাইট' },
 ];
 
 const FAB =
@@ -29,15 +23,13 @@ export default function LocationPicker() {
   const markerRef = useRef<any>(null);
   const meRef = useRef<any[]>([]);
   const libRef = useRef<any>(null);
-  const layersRef = useRef<Record<string, any>>({});
-  const currentLayer = useRef<any>(null);
 
   const [ready, setReady] = useState(false);
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
-  const [layer, setLayer] = useState<LayerKey>('clean');
-  const [menu, setMenu] = useState(false);
+  const [paste, setPaste] = useState('');
+  const [resolving, setResolving] = useState(false);
   const [full, setFull] = useState(false);
 
   function place(lat: number, lng: number, zoom?: number) {
@@ -82,26 +74,14 @@ export default function LocationPicker() {
       }).setView(CENTER, 14);
       map.attributionControl.setPrefix(false);
 
-      layersRef.current = {
-        clean: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          subdomains: 'abcd',
-          maxZoom: 20,
-          attribution: '© OpenStreetMap contributors © CARTO',
-        }),
-        osm: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '© OpenStreetMap contributors',
-        }),
-        sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-          maxZoom: 19,
-          attribution: 'Tiles © Esri',
-        }),
-      };
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors',
+      }).addTo(map);
       L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
 
       map.on('click', (e: any) => {
         place(e.latlng.lat, e.latlng.lng);
-        setMenu(false);
         setMsg('পিন বসানো হয়েছে। ঠিক জায়গায় না হলে পিনটি টেনে সরান।');
       });
       mapRef.current = map;
@@ -112,18 +92,9 @@ export default function LocationPicker() {
       if (mapRef.current) mapRef.current.remove();
       mapRef.current = null;
       markerRef.current = null;
-      currentLayer.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // বেস-ম্যাপ বদল
-  useEffect(() => {
-    if (!ready || !mapRef.current) return;
-    if (currentLayer.current) mapRef.current.removeLayer(currentLayer.current);
-    currentLayer.current = layersRef.current[layer];
-    currentLayer.current.addTo(mapRef.current);
-  }, [layer, ready]);
 
   // ফুল-স্ক্রিন বদলালে ম্যাপের মাপ ঠিক করা
   useEffect(() => {
@@ -192,6 +163,59 @@ export default function LocationPicker() {
     setMsg('অবস্থান মুছে ফেলা হয়েছে।');
   }
 
+
+  // গুগল ম্যাপ অ্যাপ থেকে কপি করা লিংক বা কোঅর্ডিনেট বসানো
+  async function applyText(raw: string) {
+    const text = raw.trim();
+    if (!text) {
+      setMsg('আগে গুগল ম্যাপ থেকে কপি করা লিংক বা কোঅর্ডিনেট পেস্ট করুন।');
+      return;
+    }
+    let p = parseCoords(text);
+    if (!p) {
+      const short = findShortLink(text);
+      if (short) {
+        setResolving(true);
+        setMsg('গুগল ম্যাপের লিংক থেকে জায়গা খোঁজা হচ্ছে…');
+        try {
+          const res = await fetch('/api/resolve-map?u=' + encodeURIComponent(short));
+          if (res.ok) {
+            const d = await res.json();
+            if (typeof d.lat === 'number' && typeof d.lng === 'number') p = { lat: d.lat, lng: d.lng };
+          }
+        } catch {
+          /* নিচের বার্তা দেখাবে */
+        }
+        setResolving(false);
+      }
+    }
+    if (!p) {
+      setMsg('লিংক থেকে জায়গা বোঝা যায়নি। গুগল ম্যাপে জায়গাটি ধরে রেখে পিন বসান, তারপর নিচের কোঅর্ডিনেট (যেমন 22.3384, 91.8317) কপি করে এখানে পেস্ট করুন।');
+      return;
+    }
+    if (!inChattogram(p)) {
+      setMsg('জায়গাটি চট্টগ্রাম অঞ্চলের বাইরে মনে হচ্ছে। চট্টগ্রামের ভেতরের জায়গা বেছে নিন।');
+      return;
+    }
+    place(p.lat, p.lng, 17);
+    setPaste('');
+    setMsg('গুগল ম্যাপের জায়গাটি পিন হিসেবে বসেছে। ঠিক জায়গায় না হলে পিনটি টেনে সরান।');
+  }
+
+  async function pasteClipboard() {
+    try {
+      const t = await navigator.clipboard.readText();
+      setPaste(t);
+      await applyText(t);
+    } catch {
+      setMsg('কপি করা লেখা পড়া যায়নি। নিচের ঘরে আঙুল চেপে ধরে "পেস্ট" দিন, তারপর "বসান" চাপুন।');
+    }
+  }
+
+  const gmapsHref = pos
+    ? `https://www.google.com/maps/search/?api=1&query=${pos.lat.toFixed(6)},${pos.lng.toFixed(6)}`
+    : `https://www.google.com/maps/@${CENTER[0]},${CENTER[1]},15z`;
+
   const status = msg || (pos ? 'পিন বসানো আছে।' : 'এখনো পিন বসানো হয়নি (ঐচ্ছিক)।');
 
   return (
@@ -203,28 +227,8 @@ export default function LocationPicker() {
           className="z-0 w-full overflow-hidden rounded-md border border-line"
         />
 
-        {/* ওপরের ডান: ম্যাপের ধরন ও ফুল-স্ক্রিন */}
+        {/* ওপরের ডান: ফুল-স্ক্রিন */}
         <div className="absolute right-2.5 top-2.5 flex flex-col items-end gap-2" style={{ zIndex: 1000 }}>
-          <button type="button" className={FAB} aria-label="ম্যাপের ধরন বদলান" onClick={() => setMenu((v) => !v)}>
-            🗺
-          </button>
-          {menu && (
-            <div className="overflow-hidden rounded-lg bg-white text-sm text-neutral-800 shadow-lg ring-1 ring-black/10">
-              {LAYERS.map((l) => (
-                <button
-                  key={l.key}
-                  type="button"
-                  className={`block w-full px-4 py-2.5 text-left ${layer === l.key ? 'bg-blue-50 font-semibold text-blue-700' : ''}`}
-                  onClick={() => {
-                    setLayer(l.key);
-                    setMenu(false);
-                  }}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
-          )}
           <button type="button" className={FAB} aria-label={full ? 'ফুল-স্ক্রিন বন্ধ করুন' : 'ফুল-স্ক্রিনে দেখুন'} onClick={() => setFull((v) => !v)}>
             {full ? '✕' : '⛶'}
           </button>
@@ -270,6 +274,47 @@ export default function LocationPicker() {
       {!full && (
         <>
           <p className="muted">ম্যাপে মণ্ডপের জায়গায় ট্যাপ করে পিন বসান, পিনটি টেনে সরানো যায়। বড় করে দেখতে ওপরের ডানের ⛶ বোতাম চাপুন।</p>
+          <div className="space-y-3 rounded-md border border-line bg-surface p-3">
+            <a href={gmapsHref} target="_blank" rel="noopener noreferrer" className="btn w-full justify-center no-underline">
+              🗺 গুগল ম্যাপ অ্যাপে খুলে লোকেশন বেছে নিন
+            </a>
+            <ol className="muted list-decimal space-y-1 pl-5">
+              <li>বোতাম চাপলে ফোনের গুগল ম্যাপ খুলবে। মণ্ডপের জায়গায় আঙুল চেপে ধরে লাল পিন বসান।</li>
+              <li>নিচে আসা তালিকা থেকে "শেয়ার" চেপে "কপি" দিন (বা পিনের কোঅর্ডিনেট কপি করুন)।</li>
+              <li>এই সাইটে ফিরে এসে "📋 কপি করা লিংক বসান" চাপুন।</li>
+            </ol>
+            <button type="button" className="btn-ghost w-full" onClick={() => void pasteClipboard()} disabled={resolving}>
+              {resolving ? 'খোঁজা হচ্ছে…' : '📋 কপি করা লিংক বসান'}
+            </button>
+            <div className="flex gap-2">
+              <input
+                className="input"
+                value={paste}
+                onChange={(e) => setPaste(e.target.value)}
+                onPaste={(e) => {
+                  const t = e.clipboardData.getData('text');
+                  if (t) {
+                    e.preventDefault();
+                    setPaste(t);
+                    void applyText(t);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    void applyText(paste);
+                  }
+                }}
+                placeholder="অথবা এখানে লিংক বা 22.3384, 91.8317 পেস্ট করুন"
+                aria-label="গুগল ম্যাপের লিংক বা কোঅর্ডিনেট"
+                maxLength={500}
+              />
+              <button type="button" className="btn shrink-0" onClick={() => void applyText(paste)} disabled={resolving}>
+                বসান
+              </button>
+            </div>
+          </div>
+
           <p aria-live="polite" className={pos ? 'text-sm font-medium' : 'muted'}>
             {status}
           </p>
