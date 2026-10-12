@@ -1,25 +1,28 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { getSiteLikes, setSiteLike } from '@/app/likes/actions';
+import { useEffect, useRef, useState } from 'react';
+import { addSiteLikes, getSiteLikeTotal } from '@/app/likes/actions';
 import { bn } from '@/lib/bn';
-import { voterId } from '@/lib/voter';
 
-// পুরো ওয়েবসাইটকে লাভ/লাইক দেওয়ার বোতাম ও মোট সংখ্যা
-export default function SiteLike({ compact = false }: { compact?: boolean }) {
+// উপরের লাল ব্যানারে (শুধু হোমপেজে) ছোট লাইক বোতাম।
+// যতবার খুশি চাপা যায়; প্রতিটি চাপে সংখ্যা সাথে সাথে বাড়ে, আর কয়েকটি চাপ একসাথে করে ডেটাবেসে পাঠানো হয়।
+export default function SiteLike() {
   const pathname = usePathname();
   const [count, setCount] = useState<number | null>(null);
-  const [liked, setLiked] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [tapped, setTapped] = useState(false);
+  const base = useRef(0); // ডেটাবেসের সর্বশেষ জানা মোট
+  const pending = useRef(0); // এখনো পাঠানো হয়নি এমন চাপ
+  const inflight = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let alive = true;
-    getSiteLikes(voterId())
+    getSiteLikeTotal()
       .then((r) => {
         if (!alive || !r.ok) return;
-        setCount(r.count ?? 0);
-        setLiked(!!r.liked);
+        base.current = r.count ?? 0;
+        setCount(base.current + pending.current);
       })
       .catch(() => {});
     return () => {
@@ -27,71 +30,54 @@ export default function SiteLike({ compact = false }: { compact?: boolean }) {
     };
   }, []);
 
-  // ডেটাবেস প্রস্তুত না থাকলে (SQL চালানো না হলে) বা লোড না হলে কিছুই দেখানো হয় না
-  // compact (উপরের লাল ব্যানারে ছোট রূপ) শুধু হোমপেজে দেখায়
-  if (count === null || (compact && pathname !== '/')) return null;
-
-  async function toggle() {
-    if (busy) return;
-    const was = liked;
-    const prev = count ?? 0;
-    setBusy(true);
-    setLiked(!was);
-    setCount(Math.max(prev + (was ? -1 : 1), 0));
-    const r = await setSiteLike(voterId(), !was);
-    setBusy(false);
-    if (!r.ok) {
-      setLiked(was);
-      setCount(prev);
-      return;
+  async function flush() {
+    if (inflight.current || pending.current === 0) return;
+    inflight.current = true;
+    const n = Math.min(pending.current, 100);
+    pending.current -= n;
+    let ok = false;
+    try {
+      const r = await addSiteLikes(n);
+      if (r.ok) {
+        ok = true;
+        base.current = r.count ?? base.current + n;
+      } else {
+        pending.current += n;
+      }
+    } catch {
+      pending.current += n;
     }
-    setLiked(!!r.liked);
-    setCount(r.count ?? prev);
+    inflight.current = false;
+    setCount(base.current + pending.current);
+    if (ok && pending.current > 0) timer.current = setTimeout(() => void flush(), 300);
   }
 
-  if (compact) {
-    return (
-      <div className="flex shrink-0 flex-col items-end gap-1 leading-none">
-        <span className="text-[11px] text-herofg/80">পেজটি ভালো লাগলে লাইক দিন</span>
-        <button
-          type="button"
-          onClick={() => void toggle()}
-          aria-pressed={liked}
-          aria-label={liked ? 'লাইক তুলে নিন' : 'পেজটিতে লাইক দিন'}
-          disabled={busy}
-          className="inline-flex min-h-[34px] items-center gap-1.5 bg-transparent py-1 text-[13px] font-medium text-herofg transition active:opacity-70 disabled:opacity-70"
-        >
-          <span aria-hidden="true" className="text-[15px] leading-none">
-            {liked ? '❤️' : '🤍'}
-          </span>
-          <span>{liked ? 'লাইক দিয়েছেন' : 'লাইক দিন'}</span>
-          <span aria-live="polite" className="font-semibold tabular-nums text-herogold">
-            {bn(count)}
-          </span>
-        </button>
-      </div>
-    );
+  function tap() {
+    pending.current += 1;
+    setCount((c) => (c ?? 0) + 1);
+    setTapped(true);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => void flush(), 400);
   }
+
+  // ডেটাবেস প্রস্তুত না থাকলে বা হোম ছাড়া অন্য পাতায় কিছুই দেখানো হয় না
+  if (count === null || pathname !== '/') return null;
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3">
+    <div className="flex shrink-0 flex-col items-end gap-1 leading-none">
+      <span className="text-[11px] text-herofg/80">পেজটি ভালো লাগলে লাইক দিন</span>
       <button
         type="button"
-        onClick={() => void toggle()}
-        aria-pressed={liked}
-        disabled={busy}
-        className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-5 py-2 font-semibold transition active:scale-95 disabled:opacity-70 ${
-          liked ? 'border-herogold bg-herogold text-hero' : 'border-herogold bg-transparent text-herofg'
-        }`}
+        onClick={tap}
+        aria-label="পেজটিতে লাইক দিন"
+        className="inline-flex min-h-[34px] touch-manipulation select-none items-center gap-1.5 bg-transparent py-1 text-[13px] font-medium text-herofg transition active:opacity-70"
       >
-        <span aria-hidden="true" className="text-xl leading-none">
-          {liked ? '❤️' : '🤍'}
+        <span aria-hidden="true" className="text-[15px] leading-none transition-transform active:scale-125">
+          {tapped ? '❤️' : '🤍'}
         </span>
-        {liked ? 'আপনি লাভ দিয়েছেন' : 'ওয়েবসাইটকে লাভ দিন'}
+        <span>লাইক দিন</span>
+        <span className="font-semibold tabular-nums text-herogold">{bn(count)}</span>
       </button>
-      <span className="text-sm opacity-95" aria-live="polite">
-        মোট লাভ: <b>{bn(count)}</b>
-      </span>
     </div>
   );
 }
