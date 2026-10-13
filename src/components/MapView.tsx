@@ -12,12 +12,16 @@ export default function MapView({
   wheelZoom = false,
   fitAll = true,
   fullscreenToggle = false,
+  focusId,
+  focusZoom = 15,
 }: {
   pins: Pin[];
   height?: number | string;
   wheelZoom?: boolean;
   fitAll?: boolean;
   fullscreenToggle?: boolean;
+  focusId?: string; // দিলে ম্যাপ এই মণ্ডপকে কেন্দ্রে রেখে খোলে; আশেপাশের পিন ম্যাপেই থাকে (জুম আউট করলে দেখা যায়)
+  focusZoom?: number;
 }) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
@@ -40,11 +44,14 @@ export default function MapView({
       map = createBaseMap(L, node, { wheelZoom });
       mapRef.current = map;
 
-      const bounds = addPins(L, map, pins);
+      const markers: Record<string, any> = {};
+      const bounds = addPins(L, map, pins, { markersOut: markers });
+      const focusPin = focusId ? pins.find((p) => p.id === focusId) : undefined;
 
       const saved = restoreRef.current ? viewRef.current : null;
       restoreRef.current = false;
       if (saved) map.setView([saved.lat, saved.lng], saved.zoom, { animate: false });
+      else if (focusPin) map.setView([focusPin.lat, focusPin.lng], focusZoom, { animate: false });
       else if (bounds.length === 1) map.setView(bounds[0], 16);
       else if (bounds.length > 1 && fitAll) map.fitBounds(bounds, { padding: [30, 30] });
       setTimeout(() => map && map.invalidateSize(), 200);

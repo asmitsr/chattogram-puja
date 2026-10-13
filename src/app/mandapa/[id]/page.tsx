@@ -4,6 +4,8 @@ import Comments from '@/components/Comments';
 import MapView from '@/components/MapView';
 import ShareBar from '@/components/ShareBar';
 import { isAdminViewer } from '@/lib/admin';
+import { fetchNearby } from '@/lib/pins';
+import { myMapsUrl } from '@/lib/myMaps';
 import { createClient } from '@/lib/supabase/server';
 import { bn, dayKey, fmtDate, fmtTime } from '@/lib/bn';
 import type { Mandapa, MandapaComment, Schedule } from '@/lib/types';
@@ -33,6 +35,13 @@ export default async function MandapaDetail({ params }: { params: { id: string }
 
   const hasLoc = m.latitude !== null && m.longitude !== null;
 
+  // আশেপাশের মণ্ডপ (৩ কিমির মধ্যে): ম্যাপে ছোট ॐ চিহ্নে ও নিচে তালিকায় দেখানো হয়
+  const lat = hasLoc ? Number(m.latitude) : NaN;
+  const lng = hasLoc ? Number(m.longitude) : NaN;
+  const hasPos = hasLoc && Number.isFinite(lat) && Number.isFinite(lng);
+  const nearby = hasPos ? await fetchNearby(supabase, lat, lng, m.id) : [];
+  const fmtDist = (d: number) => (d < 1000 ? `${bn(Math.max(10, Math.round(d / 10) * 10))} মিটার` : `${bn((d / 1000).toFixed(1))} কিমি`);
+
   return (
     <div className="wrap space-y-6 py-6">
       <p>
@@ -50,24 +59,55 @@ export default async function MandapaDetail({ params }: { params: { id: string }
 
       <section>
         <h2 className="mb-2 text-2xl text-accent">অবস্থান</h2>
-        {hasLoc ? (
+        {hasPos ? (
           <>
-            <MapView pins={[{ id: m.id, name: m.name, area: m.area, lat: m.latitude!, lng: m.longitude! }]} height={300} />
-            <p className="mt-3">
+            <MapView
+              pins={[
+                { id: m.id, name: m.name, area: m.area, address: m.address, contact: m.contact, lat, lng, link: false, focus: true },
+                ...nearby.map(({ dist: _d, ...p }) => p),
+              ]}
+              focusId={m.id}
+              height={340}
+              fullscreenToggle
+            />
+            <p className="muted mt-2">
+              বড় লাল ॐ চিহ্নটি এই মণ্ডপ।{nearby.length > 0 ? ` ছোট ॐ চিহ্নগুলো আশেপাশের ${bn(nearby.length)}টি পূজা (৩ কিমির মধ্যে); চাপলে নাম ও বিস্তারিত দেখা যাবে।` : ' ৩ কিমির মধ্যে ম্যাপে আর কোনো পূজা নেই।'}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <a className="btn" href={myMapsUrl(lat, lng)} target="_blank" rel="noopener noreferrer">
+                আশেপাশের পূজাসহ Google Maps-এ দেখুন
+              </a>
               <a
                 className="btn-ghost"
-                href={`https://www.google.com/maps/dir/?api=1&destination=${m.latitude},${m.longitude}`}
+                href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 Google Maps-এ দিকনির্দেশ
               </a>
-            </p>
+            </div>
           </>
         ) : (
           <p className="muted">এই মণ্ডপের সঠিক অবস্থান এখনো ম্যাপে যোগ হয়নি।</p>
         )}
       </section>
+
+      {nearby.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-2xl text-accent">আশেপাশের পূজা</h2>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {nearby.slice(0, 12).map((n) => (
+              <li key={n.id}>
+                <Link href={`/mandapa/${n.id}`} className="card block text-fg no-underline hover:border-accent">
+                  <span className="badge">{fmtDist(n.dist)} দূরে</span>
+                  <h3 className="mt-1.5 text-lg text-accent">{n.name}</h3>
+                  {n.area && <p className="muted mt-1">{n.area}</p>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <ShareBar title={m.name} />
       <Comments mandapaId={m.id} comments={comments} failed={!!cmErr} isAdmin={isAdmin} />

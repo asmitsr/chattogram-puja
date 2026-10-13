@@ -28,6 +28,9 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         <a href="/admin/backup" className="rounded-full border border-line px-3 py-1 text-sm no-underline">
           ব্যাকআপ (JSON)
         </a>
+        <a href="/admin/map-export" className="rounded-full border border-line px-3 py-1 text-sm no-underline">
+          Google My Maps-এর জন্য KML
+        </a>
         <form action={logoutAdmin} className="ml-auto">
           <button type="submit" className="btn-ghost !min-h-0 !px-3 !py-1 text-sm">
             লগআউট

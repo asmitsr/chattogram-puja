@@ -3,6 +3,8 @@
 // সাইটের সব ম্যাপের একই চেহারা এক জায়গায়: /map পাতা ও "তথ্য জমা দিন" পাতার ম্যাপ দুটোই এটি ব্যবহার করে।
 // টাইল, জুম বোতাম, ॐ মার্কার, পপআপ, ব্যাকগ্রাউন্ড রং ও ফুল-স্ক্রিন বোতাম এখানেই ঠিক করা।
 
+import { myMapsUrl } from '@/lib/myMaps';
+
 export interface Pin {
   id: string;
   name: string;
@@ -11,6 +13,7 @@ export interface Pin {
   contact?: string | null;
   description?: string | null;
   link?: boolean; // false হলে "বিস্তারিত" লিংক দেখানো হয় না
+  focus?: boolean; // true হলে এই পিনটি বড় ও আলাদা রঙে দেখানো হয় (বিস্তারিত পাতার নিজের মণ্ডপ)
   lat: number;
   lng: number;
 }
@@ -27,13 +30,17 @@ export const MAP_BG = '#f2efe9';
 export const MAP_HEIGHT = 'clamp(260px, 38vh, 420px)';
 
 // সব মণ্ডপের জন্য একই ॐ মার্কার: মেরুন বৃত্ত, সোনালি কিনারা, ভেতরে ॐ
-export function omIcon(L: any, size: number) {
+export function omIcon(L: any, size: number, focus = false) {
+  const bg = focus ? '#c8102e' : '#7a1424';
+  const border = focus ? '#ffffff' : '#f0c766';
+  const shadow = focus ? '0 0 0 4px rgba(240,199,102,.95),0 3px 10px rgba(0,0,0,.65)' : '0 2px 6px rgba(0,0,0,.55)';
+  const color = focus ? '#ffffff' : '#f0c766';
   return L.divIcon({
     className: '',
     html:
-      `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#7a1424;border:3px solid #f0c766;` +
-      `box-shadow:0 2px 6px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;` +
-      `color:#f0c766;font-weight:700;font-size:${Math.round(size * 0.55)}px;line-height:1;font-family:'Noto Sans Devanagari','Noto Sans Bengali',sans-serif">ॐ</div>`,
+      `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:3px solid ${border};` +
+      `box-shadow:${shadow};display:flex;align-items:center;justify-content:center;` +
+      `color:${color};font-weight:700;font-size:${Math.round(size * 0.55)}px;line-height:1;font-family:'Noto Sans Devanagari','Noto Sans Bengali',sans-serif">ॐ</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -size / 2],
@@ -53,7 +60,12 @@ export function createBaseMap(L: any, node: HTMLElement, opts: { wheelZoom?: boo
 
 // সব মণ্ডপের ॐ মার্কার ও পপআপ বসানো; মার্কারগুলোর অবস্থান ফেরত দেয়।
 // newTab = true হলে "বিস্তারিত" লিংক নতুন ট্যাবে খোলে (ফর্ম পাতায় লেখা হারিয়ে না যাওয়ার জন্য)
-export function addPins(L: any, map: any, pins: Pin[], opts: { newTab?: boolean } = {}): [number, number][] {
+export function addPins(
+  L: any,
+  map: any,
+  pins: Pin[],
+  opts: { newTab?: boolean; markersOut?: Record<string, any> } = {},
+): [number, number][] {
   const bounds: [number, number][] = [];
   pins.forEach((p) => {
     const box = document.createElement('div');
@@ -96,11 +108,24 @@ export function addPins(L: any, map: any, pins: Pin[], opts: { newTab?: boolean 
     dir.rel = 'noopener noreferrer';
     dir.textContent = 'দিকনির্দেশ';
     actions.appendChild(dir);
+    // গুগল My Maps খোলে: সেখানে এই মণ্ডপের আশেপাশের সব পূজার ॐ চিহ্নও দেখা যায়
+    const near = document.createElement('a');
+    near.href = myMapsUrl(p.lat, p.lng);
+    near.target = '_blank';
+    near.rel = 'noopener noreferrer';
+    near.textContent = 'আশেপাশের পূজা (Google Maps)';
+    actions.appendChild(near);
     box.appendChild(actions);
 
-    L.marker([p.lat, p.lng], { icon: omIcon(L, pins.length === 1 ? 40 : 34), title: p.name, riseOnHover: true })
+    const marker = L.marker([p.lat, p.lng], {
+      icon: omIcon(L, p.focus ? 46 : pins.length === 1 ? 40 : 34, !!p.focus),
+      title: p.name,
+      riseOnHover: true,
+      zIndexOffset: p.focus ? 1000 : 0,
+    })
       .addTo(map)
       .bindPopup(box);
+    if (opts.markersOut) opts.markersOut[p.id] = marker;
     bounds.push([p.lat, p.lng]);
   });
   return bounds;
