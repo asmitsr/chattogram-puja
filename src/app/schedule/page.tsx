@@ -1,73 +1,339 @@
-import { SCHEDULE_HEADERS as H, SCHEDULE_ROWS, SCHEDULE_SUB, SCHEDULE_TITLE } from '@/lib/pujaSchedule';
+import Rich from '@/components/Rich';
+import { SCHEDULE_HEADERS as H, SCHEDULE_ROWS } from '@/lib/pujaSchedule';
 
 export const metadata = { title: 'সময়সূচি' };
 
+function SectionHead({ title, badge }: { title: string; badge: string }) {
+  return (
+    <div className="pd-sechead">
+      <h2>{title}</h2>
+      <span className="pd-badge">{badge}</span>
+    </div>
+  );
+}
+
+function P({ children }: { children: string }) {
+  return (
+    <p className="pd-p">
+      <Rich text={children} />
+    </p>
+  );
+}
+
+function Li({ children, sub }: { children: string; sub?: boolean }) {
+  return (
+    <li className={sub ? 'pd-li pd-sub' : 'pd-li'}>
+      <Rich text={children} />
+    </li>
+  );
+}
+
 export default function SchedulePage() {
   return (
-    <div className="wrap py-6">
-      <header className="border-b-2 border-gold pb-3">
-        <h1 className="font-display text-3xl leading-snug text-accent">{SCHEDULE_TITLE}</h1>
-        <p className="mt-1 font-display text-xl text-gold">{SCHEDULE_SUB}</p>
-      </header>
+    <div className="pd">
+      <div className="pd-in">
+        {/* শিরোনাম */}
+        <header className="pd-hero">
+          <p className="pd-mantra">ওঁ সর্বমঙ্গলমঙ্গল্যে শিবে সর্বার্থসাধিকে। শরণ্যে ত্র্যম্বকে গৌরী নারায়ণি নমোহস্তু তে॥</p>
+          <h1>শারদীয় দুর্গাপূজা ২০২৬ (১৪৩৩ বঙ্গাব্দ) — পূর্ণাঙ্গ শাস্ত্রীয় নির্ঘণ্ট</h1>
+          <p className="pd-herosub">
+            হিন্দু ধর্মীয় শাস্ত্র, প্রচলিত গুপ্তপ্রেস পঞ্জিকা ও বিশুদ্ধ সিদ্ধান্ত পঞ্জিকা মতে সকল পূজা, বোধন, সন্ধিপূজা ও
+            বিসর্জনের সময়সূচি (বাংলাদেশ সময়)
+          </p>
+        </header>
 
-      {/* ছোট পর্দা (ফোন): প্রতিটি আচার একটি কার্ডে */}
-      <ol className="mt-5 space-y-4 md:hidden">
-        {SCHEDULE_ROWS.map((r, i) => (
-          <li key={i} className="overflow-hidden rounded-md border border-line bg-surface">
-            <div className="border-b border-line bg-goldsoft px-4 py-3">
-              <h2 className="font-display text-xl leading-snug text-accent">{r.ritual}</h2>
-              <p className="mt-1 font-semibold text-gold">{r.date}</p>
-            </div>
-            <div className="space-y-3 px-4 py-3">
-              <div className="border-l-4 border-accent pl-3">
-                <h3 className="text-sm font-bold text-accent">{H.guptapress.label}</h3>
-                <p className="text-xs text-muted">{H.guptapress.note}</p>
-                <p className="mt-1">{r.guptapress}</p>
-              </div>
-              <div className="border-l-4 border-gold pl-3">
-                <h3 className="text-sm font-bold text-gold">{H.bishuddha.label}</h3>
-                <p className="text-xs text-muted">{H.bishuddha.note}</p>
-                <p className="mt-1">{r.bishuddha}</p>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ol>
+        {/* পঞ্জিকা ভেদের ব্যাখ্যা */}
+        <section className="pd-note">
+          <p>
+            <Rich text="**পঞ্জিকা ভেদে তিথি ও সময়ের ব্যাখ্যা:** ১৪৩৩ বঙ্গাব্দে (২০২৬ খ্রি.) তিথি বৃদ্ধির কারণে দুটি প্রধান পঞ্জিকা মতে পূজার সময়ে পার্থক্য রয়েছে। আপনার প্রদত্ত তালিকায় মহাসপ্তমীতে **১৭–১৮ অক্টোবর** / **১৮ অক্টোবর** উল্লেখের মূল শাস্ত্রীয় কারণ হলো:" />
+          </p>
+          <p>
+            <Rich text="• **গুপ্তপ্রেস / লোকনাথ পঞ্জিকা মত (স্মার্ত মত):** বাংলাদেশের **শ্রীশ্রী ঢাকেশ্বরী জাতীয় মন্দির** ও **বাংলাদেশ পূজা উদযাপন পরিষদ** এই মত অনুসরণ করে। এই মতে সপ্তমী তিথি বৃদ্ধি পাওয়ায় **মহাসপ্তমী দুই দিন (১৭ ও ১৮ অক্টোবর)**।" />
+          </p>
+          <p>
+            <Rich text="• **বিশুদ্ধ সিদ্ধান্ত পঞ্জিকা মত:** **রামকৃষ্ণ মঠ ও মিশন** এবং **বেলুড় মঠ** এই মত অনুসরণ করে। এই মতে ষষ্ঠী তিথি বৃদ্ধি পাওয়ায় মূল **মহাসপ্তমী ১৮ অক্টোবর (রবিবার)** অনুষ্ঠিত হবে।" />
+          </p>
+        </section>
 
-      {/* বড় পর্দা: ছক */}
-      <div className="mt-5 hidden overflow-x-auto rounded-md border border-line md:block">
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr className="bg-hero text-herofg">
-              <th scope="col" className="w-[17%] px-4 py-3 align-bottom font-display text-lg font-normal">
-                {H.ritual}
-              </th>
-              <th scope="col" className="w-[15%] px-4 py-3 align-bottom font-display text-lg font-normal">
-                {H.date}
-              </th>
-              <th scope="col" className="w-[34%] px-4 py-3 align-bottom font-display text-lg font-normal">
-                {H.guptapress.label}
-                <span className="block font-body text-xs text-herogold">{H.guptapress.note}</span>
-              </th>
-              <th scope="col" className="w-[34%] px-4 py-3 align-bottom font-display text-lg font-normal">
-                {H.bishuddha.label}
-                <span className="block font-body text-xs text-herogold">{H.bishuddha.note}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {SCHEDULE_ROWS.map((r, i) => (
-              <tr key={i} className={i % 2 === 0 ? 'bg-surface' : 'bg-goldsoft'}>
-                <th scope="row" className="border-t border-line px-4 py-3 align-top font-display text-lg font-normal text-accent">
-                  {r.ritual}
+        {/* কেন্দ্রীয় ছক */}
+        <SectionHead title="এক নজরে শারদীয় দুর্গাপূজা ২০২৬ — কেন্দ্রীয় সময়সূচি ছক" badge="বাংলাদেশ সময় (BST)" />
+
+        {/* বড় পর্দা: ছক */}
+        <div className="pd-tablewrap">
+          <table className="pd-table">
+            <thead>
+              <tr>
+                <th>{H.ritual}</th>
+                <th>{H.date}</th>
+                <th>
+                  {H.guptapress.label}
+                  <br />
+                  {H.guptapress.note}
                 </th>
-                <td className="border-t border-line px-4 py-3 align-top font-semibold text-gold">{r.date}</td>
-                <td className="border-t border-line px-4 py-3 align-top">{r.guptapress}</td>
-                <td className="border-t border-line px-4 py-3 align-top">{r.bishuddha}</td>
+                <th>
+                  {H.bishuddha.label}
+                  <br />
+                  {H.bishuddha.note}
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {SCHEDULE_ROWS.map((r, i) => (
+                <tr key={i} className={`pd-tone-${r.tone}`}>
+                  <th scope="row">
+                    <b>{r.ritual}</b>
+                    {r.ritualSub && (
+                      <>
+                        <br />
+                        {r.ritualSub}
+                      </>
+                    )}
+                  </th>
+                  <td>
+                    {r.date}
+                    <br />
+                    {r.dateSub}
+                  </td>
+                  <td>
+                    <Rich text={r.guptapress} />
+                  </td>
+                  <td>
+                    <Rich text={r.bishuddha} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ফোন: প্রতিটি সারি একটি কার্ড (ছকেরই রং, লেখা একই) */}
+        <ol className="pd-cards">
+          {SCHEDULE_ROWS.map((r, i) => (
+            <li key={i} className={`pd-card pd-tone-${r.tone}`}>
+              <div className="pd-card-top">
+                <h3>
+                  {r.ritual}
+                  {r.ritualSub && <span> {r.ritualSub}</span>}
+                </h3>
+                <p>
+                  {r.date} {r.dateSub}
+                </p>
+              </div>
+              <div className="pd-card-col">
+                <h4>{H.guptapress.label}</h4>
+                <small>{H.guptapress.note}</small>
+                <p>
+                  <Rich text={r.guptapress} />
+                </p>
+              </div>
+              <div className="pd-card-col">
+                <h4>{H.bishuddha.label}</h4>
+                <small>{H.bishuddha.note}</small>
+                <p>
+                  <Rich text={r.bishuddha} />
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        {/* ১ম পর্ব */}
+        <SectionHead title="দিনভিত্তিক বিস্তারিত শাস্ত্রীয় নির্ঘণ্ট (১ম পর্ব: মহালয়া হতে মহাসপ্তমী)" badge="বোধন ও নবপত্রিকা বিধি" />
+
+        <figure className="pd-flow">
+          <div className="pd-flow-row">
+            <div className="pd-fbox">
+              <b>১. শুভ মহালয়া</b>
+              <span>১০ অক্টোবর (শনিবার)</span>
+              <em>প্রাতে তর্পণ ও চক্ষুদান</em>
+            </div>
+            <i className="pd-dash" aria-hidden="true" />
+            <div className="pd-fbox">
+              <b>২. পঞ্চমী বোধন</b>
+              <span>১৫ অক্টোবর (বৃহস্পতিবার)</span>
+              <strong>সায়ংকালে (সন্ধ্যায়) বোধন</strong>
+            </div>
+            <i className="pd-dash" aria-hidden="true" />
+            <div className="pd-fbox">
+              <b>৩. মহাষষ্ঠী অধিবাস</b>
+              <span>১৬ অক্টোবর (শুক্রবার)</span>
+              <em>সকাল ৯:৫৭ কল্পারম্ভ; সন্ধ্যায় অধিবাস</em>
+            </div>
+            <i className="pd-dash" aria-hidden="true" />
+            <div className="pd-fbox">
+              <b>৪. মহাসপ্তমী পূজা</b>
+              <span>১৭ ও ১৮ অক্টোবর</span>
+              <strong>সকাল ৭:৩১–৯:৫৭ মি. কলাবউ স্নান</strong>
+            </div>
+          </div>
+          <figcaption>চিত্র ১: দেবীপক্ষের সূচনা থেকে মহাসপ্তমীতে নবপত্রিকা প্রবেশ পর্যন্ত চারটি প্রধান শাস্ত্রীয় ধাপ</figcaption>
+        </figure>
+
+        <h3 className="pd-day">১. শুভ মহালয়া — ১০ অক্টোবর ২০২৬ (শনিবার, ২২ আশ্বিন ১৪৩৩)</h3>
+        <P>
+          পিতৃপক্ষের সমাপ্তি এবং দেবীপক্ষের শুভ সূচনা। বিশুদ্ধ সিদ্ধান্ত মতে অমাবস্যা তিথি ৯ অক্টোবর রাত ১০টা ০৭ মিনিটে শুরু হয়ে ১০ অক্টোবর **রাত ৯টা ৫০ মিনিট** পর্যন্ত থাকবে। এদিন প্রাতে অমাবস্যা তিথি থাকতে নদী বা জলাশয়ে পূর্বপুরুষদের উদ্দেশ্যে তিল-জল তর্পণ এবং মৃৎশিল্পীদের তুলিতে প্রতিমার **চক্ষুদান** পর্ব সম্পন্ন হবে।
+        </P>
+
+        <h3 className="pd-day">২. শুক্লা পঞ্চমী ও মায়ের বোধন — ১৫ অক্টোবর ২০২৬ (বৃহস্পতিবার, ২৭ আশ্বিন ১৪৩৩)</h3>
+        <P>
+          **বোধনের শাস্ত্রীয় তত্ত্ব ও সময়:** শরৎকাল দেবতাদের রাত্রিকাল বা দক্ষিণায়ন হওয়ায় অসময়ে দেবী দুর্গার পূজা করতে হলে আগে দেবীকে নিদ্রা থেকে জাগরিত করতে হয়, যাকে শাস্ত্রে **'বোধন'** (অকালবোধন) বলা হয়। ঢাকেশ্বরী জাতীয় মন্দির ও প্রচলিত স্মার্ত পঞ্জিকা মতে, **১৫ অক্টোবর (বৃহস্পতিবার) পূর্বাহ্ণে শুক্লা পঞ্চমী বিহিত পূজা এবং সায়ংকালে (সূর্যাস্তের পর সন্ধ্যাবেলায়) বিল্ববৃক্ষমূলে বা ঘট স্থাপন করে শ্রীশ্রী দুর্গাদেবীর বোধন** অনুষ্ঠিত হবে।
+        </P>
+
+        <section className="pd-box pd-box-amber">
+          <h3 className="pd-day pd-day-in">৩. মহাষষ্ঠী (কল্পারম্ভ, আমন্ত্রণ ও অধিবাস) — ১৬ অক্টোবর ২০২৬ (শুক্রবার, ২৮ আশ্বিন ১৪৩৩)</h3>
+          <ul className="pd-ul">
+            <Li>**প্রাতঃকালীন কল্পারম্ভ (গুপ্তপ্রেস মতে): সকাল ৯টা ৫৭ মিনিটের মধ্যে** (পূর্বাহ্ণ ৯টা ৫৭ মিনিট) শ্রীশ্রী শারদীয়া দুর্গাদেবীর ষষ্ঠ্যাদি কল্পারম্ভ ও ষষ্ঠী বিহিত পূজা সম্পন্ন করতে হবে।</Li>
+            <Li>**সায়ংকালীন বোধন, আমন্ত্রণ ও অধিবাস: ১৬ অক্টোবর সন্ধ্যায় (সায়ংকালে)** দেবীর বোধন (যেসব মণ্ডপে পঞ্চমীতে বোধন হয়নি), বেলতলায় বা মণ্ডপে দেবীর **আমন্ত্রণ ও অধিবাস** এবং মঙ্গলঘট স্থাপন। এই সন্ধ্যা থেকেই মণ্ডপে প্রতিমার আবরণ উন্মোচন করা হয়।</Li>
+            <Li>**বিশুদ্ধ সিদ্ধান্ত মতে:** ১৫ অক্টোবর দিবাগত রাত ৩টা ৫৬ মিনিটে ষষ্ঠী শুরু হয়ে ১৭ অক্টোবর সকাল ৬টা ২৪ মিনিট পর্যন্ত থাকবে। তাই ১৭ অক্টোবর (শনিবার) **সকাল ৬টা ২৪ মিনিটের মধ্যে** ষষ্ঠ্যাদি কল্পারম্ভ এবং সন্ধ্যায় বোধন, আমন্ত্রণ ও অধিবাস অনুষ্ঠিত হবে।</Li>
+          </ul>
+        </section>
+
+        <h3 className="pd-day">৪. মহাসপ্তমী (নবপত্রিকা প্রবেশ ও সপ্তমী পূজা) — ১৭ ও ১৮ অক্টোবর ২০২৬ (শনি ও রবিবার)</h3>
+        <ul className="pd-ul">
+          <Li>**সপ্তমীর ১ম দিন — মূল পূজা (১৭ অক্টোবর, শনিবার — গুপ্তপ্রেস মতে):** কালবেলা বাদ দিয়ে **সকাল ৭টা ৩১ মিনিট থেকে সকাল ৯টা ৫৭ মিনিটের মধ্যে** নবপত্রিকা স্নান (কলাবউ স্নান), মণ্ডপে প্রবেশ, স্থাপন, সপ্তম্যাদি কল্পারম্ভ ও মহাসপ্তমী বিহিত পূজা অনুষ্ঠিত হবে। পূজা শেষে ভক্তদের পুষ্পাঞ্জলি প্রদান।</Li>
+          <Li>**সপ্তমীর ২য় দিন — অধিক পূজা (১৮ অক্টোবর, রবিবার — গুপ্তপ্রেস মতে):** সপ্তমী তিথি বৃদ্ধির কারণে **সকাল ৬টা ২২ মিনিটের মধ্যে** সপ্তমী বিহিত অধিক পূজা এবং **রাত ১১টা ২৯ মি. থেকে ১২টা ১৭ মিনিটের মধ্যে** দেবীর অর্ধরাত্রবিহিত পূজা সম্পন্ন হবে।</Li>
+          <Li>**বিশুদ্ধ সিদ্ধান্ত মতে মূল মহাসপ্তমী (১৮ অক্টোবর, রবিবার):** এই মতে ১৮ অক্টোবর রবিবার **সকাল ৮টা ৫৭ মিনিটের মধ্যে** নবপত্রিকা প্রবেশ, স্থাপন ও সপ্তমী বিহিত পূজা অনুষ্ঠিত হবে।</Li>
+        </ul>
+
+        {/* ২য় পর্ব */}
+        <SectionHead title="দিনভিত্তিক বিস্তারিত শাস্ত্রীয় নির্ঘণ্ট (২য় পর্ব: মহাষ্টমী, সন্ধিপূজা ও মহানবমী)" badge="কুমারী পূজা ও সন্ধিক্ষণ" />
+
+        <h3 className="pd-day">৫. মহাষ্টমী, কুমারী পূজা ও পুষ্পাঞ্জলি — ১৯ অক্টোবর ২০২৬ (সোমবার, ১ কার্তিক ১৪৩৩)</h3>
+        <P>দুর্গাপূজার সবচেয়ে পবিত্র ও তাৎপর্যপূর্ণ দিন মহাষ্টমী। এ বছর দুই পঞ্জিকা মতেই মহাষ্টমী ও সন্ধিপূজা সকালবেলায় অনুষ্ঠিত হবে:</P>
+        <ul className="pd-ul">
+          <Li>**গুপ্তপ্রেস পঞ্জিকা মতে (সর্বজনীন মণ্ডপের সময়):** কালবেলার পূর্বে, **সকাল ৭টা ৩৪ মিনিটের মধ্যে** মহাষ্ট্যাদি কল্পারম্ভ, মহাষ্টমী বিহিত পূজা ও পুষ্পাঞ্জলি সমাপন করতে হবে।</Li>
+          <Li>**বিশুদ্ধ সিদ্ধান্ত পঞ্জিকা মতে (রামকৃষ্ণ মিশন ও বেলুড় মঠের সময়): সকাল ১০টা ৫৭ মিনিটের মধ্যে** মহাষ্টমী বিহিত পূজা ও পুষ্পাঞ্জলি সম্পন্ন হবে।</Li>
+          <Li>**কুমারী পূজার সময়সূচি:** মহাষ্টমীর সকালে কুমারী বালিকার মধ্যে শুদ্ধ মাতৃভাব আরোপ করে কুমারী পূজা করা হয়। বেলুড় মঠে ভারতীয় সময় সকাল ৯টায় অর্থাৎ **বাংলাদেশ সময় সকাল ৯টা ৩০ মিনিটে** এবং ঢাকার রামকৃষ্ণ মঠ ও মিশনসহ দেশের মঠগুলোতে **সকাল ৯টা থেকে ১০টার মধ্যে** কুমারী পূজা অনুষ্ঠিত হবে।</Li>
+        </ul>
+
+        {/* সন্ধিপূজার সময়রেখা */}
+        <figure className="pd-tl">
+          <p className="pd-tl-title">সন্ধিপূজার ৪৮ মিনিটের নিখুঁত সময়রেখা — ১৯ অক্টোবর ২০২৬ (সোমবার)</p>
+
+          <div className="pd-tl-row pd-tl-red">
+            <div className="pd-tl-name">
+              <b>গুপ্তপ্রেস পঞ্জিকা মত:</b>
+              <small>(ঢাকেশ্বরী মন্দির ও সর্বজনীন মণ্ডপ)</small>
+            </div>
+            <div className="pd-tl-track pd-tl-gold">
+              <div className="pd-tl-pt">
+                <b>সকাল ৭:৫৫ মি.</b>
+                <u className="pd-dot" />
+                <span>সন্ধিপূজা শুরু</span>
+              </div>
+              <div className="pd-tl-pt">
+                <b>সকাল ৮:১৯ মি. (সন্ধিক্ষণ)</b>
+                <u className="pd-dia" />
+                <span>বলিদান ও তিথি পরিবর্তন</span>
+              </div>
+              <div className="pd-tl-pt">
+                <b>সকাল ৮:৪৩ মি.</b>
+                <u className="pd-dot" />
+                <span>সন্ধিপূজা সমাপ্তি</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="pd-tl-row pd-tl-amber">
+            <div className="pd-tl-name">
+              <b>বিশুদ্ধ সিদ্ধান্ত মত:</b>
+              <small>(রামকৃষ্ণ মিশন ও বেলুড় মঠ)</small>
+            </div>
+            <div className="pd-tl-track pd-tl-redline">
+              <div className="pd-tl-pt">
+                <b>সকাল ১০:৫৮ মি.</b>
+                <u className="pd-dot pd-dot-red" />
+                <span>সন্ধিপূজা শুরু</span>
+              </div>
+              <div className="pd-tl-pt">
+                <b>সকাল ১১:২২ মি. (সন্ধিক্ষণ)</b>
+                <u className="pd-dia" />
+                <span>বলিদান ও তিথি পরিবর্তন</span>
+              </div>
+              <div className="pd-tl-pt">
+                <b>সকাল ১১:৪৬ মি.</b>
+                <u className="pd-dot pd-dot-red" />
+                <span>সন্ধিপূজা সমাপ্তি</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="pd-tl-rule">
+            সন্ধিপূজা বিধি: অষ্টমী তিথির শেষ ২৪ মিনিট ও নবমী তিথির প্রথম ২৪ মিনিট (মোট ৪৮ মিনিট) ১০৮টি নীলপদ্ম ও ১০৮টি প্রদীপ প্রজ্বলন করে চামুণ্ডা রূপে দেবীর পূজা করা হয়।
+          </p>
+        </figure>
+
+        <section className="pd-box pd-box-red">
+          <h3 className="pd-day pd-day-in">৬. মহানবমী পূজা ও হোম (যজ্ঞ) — ২০ অক্টোবর ২০২৬ (মঙ্গলবার, ২ কার্তিক ১৪৩৩)</h3>
+          <ul className="pd-ul">
+            <Li>**গুপ্তপ্রেস পঞ্জিকা মতে:** পূর্বাহ্ণ **সকাল ৯টা ৫৭ মিনিটের মধ্যে** মহানবমী কল্পারম্ভ ও মহানবমী বিহিত পূজা সম্পন্ন করতে হবে (নবমী তিথি সকাল ৯টা ৫৯ মিনিটে সমাপ্ত হবে)। পূজান্তে পুষ্পাঞ্জলি এবং ১০৮টি ঘৃতসিক্ত বিল্বপত্র দ্বারা যজ্ঞ বা হোম অনুষ্ঠিত হবে।</Li>
+            <Li>**বিশুদ্ধ সিদ্ধান্ত পঞ্জিকা মতে: দুপুর ১টা ২০ মিনিটের মধ্যে** মহানবমী বিহিত পূজা, পুষ্পাঞ্জলি ও হোম সম্পন্ন করতে হবে।</Li>
+            <Li>সন্ধ্যায় মণ্ডপে মণ্ডপে মহা আরতি ও ধুনুচি নৃত্য।</Li>
+          </ul>
+        </section>
+
+        <h3 className="pd-day pd-day-plain">নবপত্রিকা (কলাবউ) ও অষ্টমী-নবমী পুষ্পাঞ্জলি বিধি</h3>
+        <P>
+          মহাসপ্তমীতে পূজিত **নবপত্রিকা** আসলে দেবী দুর্গার নয়টি বিশেষ রূপের প্রতীক—রম্ভা/কলা (ব্রহ্মাণী), কচু (কালিকা), হরিদ্রা (উমা), জয়ন্তী (কার্তিকী), বিল্ব (শিবা), দাড়িম্ব (রক্তদন্তিকা), অশোক (শোকরহিতা), মান (চামুণ্ডা) ও ধান (লক্ষ্মী)। শাস্ত্র মতে, মহাষ্টমীর সকালে উপবাস থেকে পুষ্পাঞ্জলি প্রদানের পর এবং সন্ধিপূজার বলিদান সমাপ্ত হওয়ার পর ভক্তগণ চরণামৃত ও প্রসাদ গ্রহণ করবেন।
+        </P>
+
+        {/* ৩য় পর্ব */}
+        <SectionHead title="শুভ বিজয়া দশমী ও বিসর্জনের পূর্ণাঙ্গ সময়সূচি (২১ অক্টোবর ২০২৬, বুধবার)" badge="দর্পণ ও প্রতিমা বিসর্জন" />
+
+        <section className="pd-box pd-box-red">
+          <h3 className="pd-day pd-day-in">৭. বিজয়া দশমী ও দুই ধাপে বিসর্জন বিধি — ২১ অক্টোবর ২০২৬ (বুধবার, ৩ কার্তিক ১৪৩৩)</h3>
+          <P>হিন্দু ধর্মীয় শাস্ত্র অনুসারে দুর্গাপূজার বিসর্জন দুটি সুনির্দিষ্ট ধাপে সম্পন্ন হয়—প্রথমত শাস্ত্রীয় **দর্পণ বিসর্জন** এবং দ্বিতীয়ত আনুষ্ঠানিক **প্রতিমা নিরঞ্জন (জলে বিসর্জন)**:</P>
+          <ul className="pd-ul">
+            <Li>**১ম ধাপ — দশমী বিহিত পূজা ও শাস্ত্রীয় দর্পণ বিসর্জনের সময়:**</Li>
+            <Li sub>**গুপ্তপ্রেস পঞ্জিকা মতে: সকাল ৯টা ৫৭ মিনিটের মধ্যে** দশমী বিহিত পূজা সমাপন ও **দর্পণ বিসর্জন** সম্পন্ন করতে হবে।</Li>
+            <Li sub>**বিশুদ্ধ সিদ্ধান্ত পঞ্জিকা মতে: দুপুর ২টা ৪১ মিনিটের মধ্যে** দশমী বিহিত পূজা সমাপন ও **দর্পণ বিসর্জন** সম্পন্ন করতে হবে।</Li>
+          </ul>
+          <p className="pd-p pd-rule">__(শাস্ত্রীয় নিয়ম: পাত্রের জলে রাখা কাঁচের দর্পণে বা আয়নায় দেবীর প্রতিবিম্ব ফেলে মন্ত্রপাঠের মাধ্যমে দেবীর প্রাণশক্তিকে প্রতিমা হতে পুনরায় ঘটে ও ব্রহ্মাণ্ডে ফিরিয়ে নেওয়া হয় এবং ঘট নাড়ানো হয়।)__</p>
+          <ul className="pd-ul">
+            <Li>**মধ্যবর্তী আচার — অপরাজিতা পূজা, দেবীবরণ ও সিঁদুর খেলা:** দর্পণ বিসর্জনের পর মণ্ডপে **অপরাজিতা পূজা** সম্পন্ন করে ডান হাতে (নারীদের বাম হাতে) অপরাজিতা লতা বাঁধা হয়। এরপর **সকাল ১০টা থেকে দুপুর ২টার মধ্যে** (ঢাকেশ্বরী জাতীয় মন্দিরে সকাল ১১টা ৩০ মিনিটে) বিবাহিত নারীরা পান, তেল, সিঁদুর ও মিষ্টি দিয়ে মা দুর্গাকে বরণ (দেবীবরণ) ও **সিঁদুর খেলায়** অংশ নেন।</Li>
+            <Li>**২য় ধাপ — প্রতিমা বিসর্জন (জলে নিরঞ্জন)-এর সময়:**</Li>
+            <Li sub>দর্পণ বিসর্জন ও দেবীবরণ শেষ হওয়ার পর **বিকাল ৩টা ০০ মিনিটে** কেন্দ্রীয় বিজয়া শোভাযাত্রা শুরু হবে।</Li>
+            <Li sub>**বিকাল ৩টা থেকে সন্ধ্যা ৬টা (সূর্যাস্তের পূর্বে)** অথবা স্থানীয় প্রশাসন ও পূজা উদযাপন পরিষদের নির্দেশনা অনুযায়ী **রাত ৮টা–৯টার মধ্যে** নদী, সমুদ্র বা জলাশয়ে প্রতিমা নিরঞ্জন সম্পন্ন করা হবে। এরপর মণ্ডপে ফিরে শান্তিজল গ্রহণ, গুরুজনদের প্রণাম ও বিজয়ার কোলাকুলি।</Li>
+          </ul>
+        </section>
+
+        {/* দেবীর আগমন ও গমন */}
+        <SectionHead title="শাস্ত্র মতে ২০২৬ সালে দেবীর আগমন ও গমন (বাহন ও ফলাফল)" badge="পঞ্জিকা তত্ত্ব" />
+
+        <div className="pd-grid">
+          <article className="pd-gcard">
+            <h3>১. দেবীর আগমন (গুপ্তপ্রেস মতে): ঘোটকে (ঘোড়ায়)</h3>
+            <p>
+              <Rich text="প্রচলিত গুপ্তপ্রেস পঞ্জিকা মতে মূল মহাসপ্তমী **শনিবার (১৭ অক্টোবর)** পড়ায় দেবীর আগমন হবে **ঘোটকে বা ঘোড়ায়**।" />
+              <br />
+              <Rich text={'^^শাস্ত্রবচন: "ছত্রভঙ্গস্তুরঙ্গমে"^^ — অর্থাৎ ঘোড়ায় আগমনের ফল ছত্রভঙ্গ বা সামাজিক ও প্রাকৃতিক অস্থিরতা।'} />
+            </p>
+          </article>
+          <article className="pd-gcard">
+            <h3>২. দেবীর আগমন (বিশুদ্ধ সিদ্ধান্ত মতে): গজে (হাতিতে)</h3>
+            <p>
+              <Rich text="বিশুদ্ধ সিদ্ধান্ত পঞ্জিকা মতে মূল মহাসপ্তমী **রবিবার (১৮ অক্টোবর)** পড়ায় দেবীর আগমন হবে **গজে বা হাতিতে**।" />
+              <br />
+              <Rich text={'^^শাস্ত্রবচন: "গজে চ জলদা দেবী শস্যপূর্ণা বসুন্ধরা"^^ — অর্থাৎ হাতিতে আগমনের ফলে উত্তম বৃষ্টিপাত হয় এবং পৃথিবী শস্যপূর্ণা হয়ে ওঠে।'} />
+            </p>
+          </article>
+          <article className="pd-gcard">
+            <h3>৩. দেবীর গমন (উভয় পঞ্জিকা মতে): নৌকায়</h3>
+            <p>
+              <Rich text="উভয় পঞ্জিকা মতেই বিজয়া দশমী **বুধবার (২১ অক্টোবর)** হওয়ায় দেবী দুর্গার কৈলাসে গমন হবে **নৌকায়**।" />
+              <br />
+              <Rich text={'^^শাস্ত্রবচন: "শস্যবৃদ্ধিস্তু জলে"^^ — অর্থাৎ নৌকায় গমনের ফলে প্রচুর শস্য উৎপাদন ও ফসলের সমৃদ্ধি ঘটে, তবে অতিবৃষ্টি বা জলবৃদ্ধির আশঙ্কা থাকে।'} />
+            </p>
+          </article>
+          <article className="pd-gcard">
+            <h3>৪. বিজয়া দশমীর অপরাজিতা ও শান্তিজল মন্ত্র</h3>
+            <p>
+              দর্পণ বিসর্জন শেষে অপরাজিতা ধারণ ও শান্তিজল গ্রহণের মাধ্যমে বছরভর সুখ, শান্তি ও বিজয় প্রার্থনা করা হয়:
+              <br />
+              <Rich text={'^^"ওঁ অপরাজিতায়ৈ নমঃ"^^ এবং ^^"ওঁ আয়ুঃ প্রজাং ধনং বিদ্যাং স্বর্গং মোক্ষং সুখানি চ। প্রযচ্ছন্তু তথা রাজ্যং প্রীতা দেবী বরপ্রদা॥"^^'} />
+            </p>
+          </article>
+        </div>
       </div>
     </div>
   );

@@ -109,3 +109,517 @@ a {
     @apply text-sm text-muted;
   }
 }
+
+/* ============================================================
+   সময়সূচি পেজ (PDF-এর হুবহু রং ও কাঠামো) — সবসময় হালকা রঙে,
+   ফন্ট: Noto Serif Bengali (বাংলা সংখ্যা ১ ঠিকমতো দেখায়)
+   ============================================================ */
+.pd {
+  --pd-paper: #fffdf9;
+  --pd-ink: #1c1917;
+  --pd-maroon: #7f1d1d;
+  --pd-rose: #881337;
+  --pd-red: #991b1b;
+  --pd-amber: #d97706;
+  --pd-red50: #fef2f2;
+  --pd-amber50: #fffbeb;
+  --pd-orange50: #fff7ed;
+  --pd-amber100: #fef3c7;
+  --pd-red200: #fecaca;
+  --pd-grey: #e7e5e4;
+  background: var(--pd-paper);
+  color: var(--pd-ink);
+  color-scheme: light;
+  font-family: 'Noto Serif Bengali', 'Noto Sans Bengali', 'Hind Siliguri', serif;
+  font-size: 16px;
+  line-height: 1.75;
+  font-variant-numeric: normal;
+  font-feature-settings: normal;
+}
+.pd * {
+  font-family: inherit;
+  font-variant-numeric: normal;
+}
+.pd-in {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+}
+.pd h1,
+.pd h2,
+.pd h3,
+.pd h4 {
+  font-family: 'Noto Serif Bengali', 'Noto Sans Bengali', serif;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+.pd .pd-red {
+  color: var(--pd-red);
+}
+.pd .pd-it {
+  font-style: italic;
+}
+
+/* শিরোনাম */
+.pd-hero {
+  background: var(--pd-maroon);
+  border: 2px solid var(--pd-amber);
+  color: #fff;
+  text-align: center;
+  padding: 1.1rem 0.9rem 1.2rem;
+}
+.pd-mantra {
+  color: #fcd9a0;
+  font-size: 0.82rem;
+  line-height: 1.8;
+}
+.pd-hero h1 {
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1.55;
+  margin: 0.45rem 0 0.5rem;
+}
+.pd-herosub {
+  color: #fde8d0;
+  font-size: 0.86rem;
+  line-height: 1.8;
+}
+
+/* ব্যাখ্যার বাক্স */
+.pd-note {
+  margin-top: 1.1rem;
+  background: var(--pd-amber50);
+  border: 1px solid var(--pd-amber);
+  border-left: 5px solid var(--pd-red);
+  padding: 0.8rem 1rem;
+  font-size: 0.95rem;
+  line-height: 1.8;
+}
+.pd-note p + p {
+  margin-top: 0.3rem;
+}
+.pd b {
+  font-weight: 700;
+}
+
+/* অংশের শিরোনাম + ব্যাজ */
+.pd-sechead {
+  margin-top: 1.9rem;
+  border-bottom: 2px solid var(--pd-amber);
+  padding-bottom: 0.45rem;
+}
+.pd-sechead h2 {
+  color: var(--pd-rose);
+  font-size: 1.22rem;
+  line-height: 1.6;
+}
+.pd-badge {
+  display: inline-block;
+  margin-top: 0.4rem;
+  background: var(--pd-amber100);
+  border: 1px solid var(--pd-amber);
+  color: var(--pd-maroon);
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  padding: 0.12rem 0.6rem;
+}
+
+/* ছক (বড় পর্দা) */
+.pd-tablewrap {
+  display: none;
+  margin-top: 0.9rem;
+}
+.pd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  line-height: 1.75;
+}
+.pd-table thead th {
+  background: var(--pd-rose);
+  color: #fff;
+  font-weight: 700;
+  text-align: left;
+  vertical-align: middle;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--pd-rose);
+}
+.pd-table td,
+.pd-table tbody th {
+  border: 1px solid var(--pd-grey);
+  padding: 0.55rem 0.7rem;
+  vertical-align: top;
+  text-align: left;
+  font-weight: 400;
+}
+.pd-table tbody th b {
+  font-weight: 700;
+}
+.pd-tone-plain {
+  background: var(--pd-paper);
+}
+.pd-tone-orange {
+  background: var(--pd-orange50);
+}
+.pd-tone-red {
+  background: var(--pd-red50);
+}
+
+/* ছক (ফোন): কার্ড */
+.pd-cards {
+  list-style: none;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.pd-card {
+  border: 1px solid var(--pd-grey);
+  overflow: hidden;
+}
+.pd-card-top {
+  background: var(--pd-rose);
+  color: #fff;
+  padding: 0.55rem 0.85rem;
+}
+.pd-card-top h3 {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: #fff;
+}
+.pd-card-top h3 span {
+  font-weight: 400;
+  font-size: 0.88rem;
+}
+.pd-card-top p {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: #fde8d0;
+}
+.pd-card-col {
+  padding: 0.55rem 0.85rem;
+  border-top: 1px solid var(--pd-grey);
+  font-size: 0.95rem;
+  line-height: 1.85;
+}
+.pd-card-col h4 {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--pd-rose);
+}
+.pd-card-col small {
+  display: block;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #6b6760;
+}
+.pd-card-col p {
+  margin-top: 0.2rem;
+}
+
+/* চিত্র ১ — চার ধাপ */
+.pd-flow {
+  margin: 1.1rem 0 0.2rem;
+  background: var(--pd-amber50);
+  border: 1px solid var(--pd-amber);
+  padding: 0.9rem 0.8rem 0.7rem;
+}
+.pd-flow-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.pd-fbox {
+  background: var(--pd-red50);
+  border: 1.5px solid var(--pd-red);
+  border-radius: 8px;
+  text-align: center;
+  padding: 0.5rem 0.5rem;
+  line-height: 1.65;
+  flex: 1;
+}
+.pd-fbox b {
+  display: block;
+  color: var(--pd-rose);
+  font-size: 0.98rem;
+}
+.pd-fbox span {
+  display: block;
+  font-size: 0.86rem;
+}
+.pd-fbox em {
+  display: block;
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--pd-red);
+}
+.pd-fbox strong {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--pd-maroon);
+  font-weight: 700;
+}
+.pd-dash {
+  align-self: center;
+  width: 0;
+  height: 1.1rem;
+  border-left: 3px dashed var(--pd-amber);
+}
+.pd-flow figcaption {
+  margin-top: 0.7rem;
+  text-align: center;
+  font-size: 0.74rem;
+  line-height: 1.7;
+  color: #57534e;
+}
+
+/* দিনভিত্তিক শিরোনাম */
+.pd-day {
+  margin-top: 1.35rem;
+  color: var(--pd-red);
+  font-size: 1.04rem;
+  line-height: 1.7;
+}
+.pd-day-in {
+  margin-top: 0;
+  color: #92400e;
+}
+.pd-box-red .pd-day-in {
+  color: var(--pd-maroon);
+}
+.pd-day-plain {
+  color: var(--pd-rose);
+  font-size: 1.1rem;
+}
+.pd-p {
+  margin-top: 0.35rem;
+  font-size: 0.98rem;
+  line-height: 1.8;
+}
+.pd-rule {
+  margin-left: 0.4rem;
+  font-size: 0.93rem;
+  color: #44403c;
+}
+.pd-ul {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+}
+.pd-li {
+  position: relative;
+  padding-left: 1.15rem;
+  margin-top: 0.4rem;
+  font-size: 0.98rem;
+  line-height: 1.8;
+}
+.pd-li::before {
+  content: '•';
+  position: absolute;
+  left: 0.1rem;
+  top: 0;
+  font-weight: 700;
+}
+.pd-sub {
+  margin-left: 0.9rem;
+  font-size: 0.95rem;
+}
+
+/* রঙিন বাক্স */
+.pd-box {
+  margin-top: 1.3rem;
+  padding: 0.8rem 0.9rem 0.9rem;
+}
+.pd-box-amber {
+  background: var(--pd-amber50);
+  border: 1px solid var(--pd-amber100);
+  border-left: 5px solid var(--pd-amber);
+}
+.pd-box-red {
+  background: var(--pd-red50);
+  border: 1px solid var(--pd-red200);
+  border-left: 5px solid var(--pd-red);
+}
+
+/* সন্ধিপূজার সময়রেখা */
+.pd-tl {
+  margin: 1.2rem 0 0;
+  background: var(--pd-amber50);
+  border: 1px solid var(--pd-amber);
+  padding: 0.8rem 0.6rem 0.9rem;
+}
+.pd-tl-title {
+  text-align: center;
+  font-weight: 700;
+  color: var(--pd-maroon);
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+.pd-tl-row {
+  margin-top: 0.7rem;
+  border-radius: 8px;
+  padding: 0.5rem 0.5rem 0.6rem;
+}
+.pd-tl-red {
+  background: var(--pd-red50);
+  border: 1.5px solid var(--pd-red);
+}
+.pd-tl-amber {
+  background: var(--pd-amber50);
+  border: 1.5px solid var(--pd-amber);
+}
+.pd-tl-name b {
+  display: block;
+  color: var(--pd-rose);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+.pd-tl-name small {
+  display: block;
+  font-size: 0.74rem;
+  line-height: 1.6;
+  color: #57534e;
+}
+.pd-tl-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin-top: 0.4rem;
+}
+.pd-tl-track::before {
+  content: '';
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  background: var(--pd-amber);
+}
+.pd-tl-pt {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.15rem;
+}
+.pd-tl-pt b {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--pd-ink);
+}
+.pd-tl-pt span {
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: #44403c;
+}
+.pd-tl-pt u {
+  display: block;
+  text-decoration: none;
+  position: relative;
+  z-index: 1;
+}
+.pd-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--pd-amber);
+}
+.pd-dot-red {
+  background: var(--pd-red);
+}
+.pd-dia {
+  width: 14px;
+  height: 14px;
+  background: var(--pd-rose);
+  transform: rotate(45deg);
+  margin: 2px 0;
+}
+.pd-tl-rule {
+  margin-top: 0.8rem;
+  text-align: center;
+  font-weight: 700;
+  color: #92400e;
+  font-size: 0.92rem;
+  line-height: 1.8;
+}
+
+/* দেবীর আগমন ও গমন — ৪টি কার্ড */
+.pd-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+.pd-gcard {
+  background: var(--pd-amber50);
+  border: 1px solid var(--pd-amber);
+  border-top: 4px solid var(--pd-red);
+  padding: 0.7rem 0.9rem 0.9rem;
+}
+.pd-gcard h3 {
+  color: var(--pd-rose);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.pd-gcard p {
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+  line-height: 1.8;
+}
+
+@media (min-width: 700px) {
+  .pd-in {
+    padding-top: 1.5rem;
+  }
+  .pd-hero h1 {
+    font-size: 1.9rem;
+  }
+  .pd-hero {
+    padding: 1.4rem 1.5rem;
+  }
+  .pd-sechead {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .pd-sechead h2 {
+    font-size: 1.35rem;
+  }
+  .pd-badge {
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+  .pd-tablewrap {
+    display: block;
+  }
+  .pd-cards {
+    display: none;
+  }
+  .pd-flow-row {
+    flex-direction: row;
+    align-items: center;
+  }
+  .pd-dash {
+    width: 1.2rem;
+    height: 0;
+    border-left: 0;
+    border-top: 3px dashed var(--pd-amber);
+  }
+  .pd-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pd-tl-row {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .pd-tl-pt b,
+  .pd-tl-pt span {
+    font-size: 0.8rem;
+  }
+}
