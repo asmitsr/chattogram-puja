@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import Comments from '@/components/Comments';
 import PujaMapEmbed from '@/components/PujaMapEmbed';
@@ -9,15 +10,28 @@ import type { MandapaComment } from '@/lib/types';
 export const metadata = { title: 'ম্যাপ' };
 export const dynamic = 'force-dynamic';
 
-export default async function MapPage() {
+// মন্তব্যগুলো আলাদাভাবে পরে আসে (স্ট্রিমিং); তাই ম্যাপ ও শিরোনাম সাথে সাথে দেখা যায়, মন্তব্যের জন্য অপেক্ষা করতে হয় না।
+async function MapComments() {
   const supabase = createClient();
-
   const [{ data, error }, isAdmin] = await Promise.all([
     // ম্যাপ পাতার সাধারণ মতামত: নির্দিষ্ট কোনো মণ্ডপের নয় (mandapa_id ফাঁকা)
     supabase.from('comments').select('*').is('mandapa_id', null).order('created_at', { ascending: true }).limit(500),
     isAdminViewer(),
   ]);
+  return <Comments mandapaId={null} comments={(data ?? []) as MandapaComment[]} failed={!!error} isAdmin={isAdmin} />;
+}
 
+function CommentsSkeleton() {
+  return (
+    <div className="card space-y-3" aria-busy="true">
+      <div className="h-6 w-1/3 animate-pulse rounded-md bg-goldsoft" />
+      <div className="h-4 w-full animate-pulse rounded-md bg-line" />
+      <div className="h-4 w-2/3 animate-pulse rounded-md bg-line" />
+    </div>
+  );
+}
+
+export default function MapPage() {
   return (
     <div className="wrap space-y-6 py-6">
       <div className="space-y-2">
@@ -38,7 +52,9 @@ export default async function MapPage() {
       </div>
 
       <ShareBar title="চট্টগ্রামের পুজো — মণ্ডপের ম্যাপ" what="এই ম্যাপ" />
-      <Comments mandapaId={null} comments={(data ?? []) as MandapaComment[]} failed={!!error} isAdmin={isAdmin} />
+      <Suspense fallback={<CommentsSkeleton />}>
+        <MapComments />
+      </Suspense>
     </div>
   );
 }

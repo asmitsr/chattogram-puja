@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import MandapaCard from '@/components/MandapaCard';
-import { createClient } from '@/lib/supabase/server';
-import { fetchAllPublished, getYears, pickCurrent } from '@/lib/data';
+import MandapaGrid, { type GridItem } from '@/components/MandapaGrid';
+import { getPublicMandapas, getPublicYear } from '@/lib/publicData';
 import { bn } from '@/lib/bn';
 import { matches } from '@/lib/search';
 import type { Mandapa } from '@/lib/types';
@@ -10,11 +9,10 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'পূজামণ্ডপ' };
 
 export default async function MandapaList({ searchParams }: { searchParams: { q?: string; area?: string } }) {
-  const supabase = createClient();
-  const year = pickCurrent(await getYears(supabase));
+  const year = await getPublicYear();
 
-  // প্রকাশিত সবগুলো মণ্ডপই আসে (কোনো সীমা নেই)
-  const all: Mandapa[] = year ? await fetchAllPublished(supabase, year.id) : [];
+  // প্রকাশিত সবগুলো মণ্ডপই আসে (কোনো সীমা নেই); ডেটা ২ মিনিটের ক্যাশ থেকে আসে
+  const all: Mandapa[] = year ? await getPublicMandapas(year.id) : [];
 
   const areas = Array.from(new Set(all.map((m) => m.area).filter(Boolean) as string[])).sort();
   const q = (searchParams.q ?? '').trim();
@@ -22,6 +20,16 @@ export default async function MandapaList({ searchParams }: { searchParams: { q?
   const list = all.filter(
     (m) => (!area || m.area === area) && matches(`${m.name} ${m.area ?? ''} ${m.address ?? ''}`, q),
   );
+
+  // ক্লায়েন্টে শুধু যা লাগে তা পাঠানো হয় (পাতার ওজন কমে)
+  const items: GridItem[] = list.map((m) => ({
+    id: m.id,
+    name: m.name,
+    area: m.area,
+    address: m.address,
+    lat: m.latitude === null ? null : Number(m.latitude),
+    lng: m.longitude === null ? null : Number(m.longitude),
+  }));
 
   return (
     <div className="wrap py-6">
@@ -57,11 +65,7 @@ export default async function MandapaList({ searchParams }: { searchParams: { q?
 
       <p className="muted mb-3">{bn(list.length)}টি মণ্ডপ পাওয়া গেছে</p>
       {list.length ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((m) => (
-            <MandapaCard key={m.id} m={m} />
-          ))}
-        </div>
+        <MandapaGrid items={items} />
       ) : (
         <p>
           কোনো মণ্ডপ পাওয়া যায়নি। অন্য নাম বা এলাকা দিয়ে চেষ্টা করুন, অথবা{' '}

@@ -1,14 +1,13 @@
 import Link from 'next/link';
 import Countdown from '@/components/Countdown';
 import MandapaCard from '@/components/MandapaCard';
-import { createClient } from '@/lib/supabase/server';
 import { hasEnv } from '@/lib/auth';
-import { getYears, pickCurrent } from '@/lib/data';
+import { getPublicMandapas, getPublicNotices, getPublicYear } from '@/lib/publicData';
 import { bn } from '@/lib/bn';
-import type { Mandapa, Notice } from '@/lib/types';
 import { YEAR_STATUS } from '@/lib/types';
 
-export const dynamic = 'force-dynamic';
+// দর্শকদের হোম পাতা আগে থেকে তৈরি থাকে, ২ মিনিট পরপর (বা অ্যাডমিন বদলালেই) নতুন হয় — তাই খুব দ্রুত খোলে।
+export const revalidate = 120;
 
 const PATTERN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%23F0C766' stroke-opacity='.28' stroke-width='1.2'%3E%3Cpath d='M20 4 L36 20 L20 36 L4 20 Z'/%3E%3Ccircle cx='20' cy='20' r='5'/%3E%3C/g%3E%3C/svg%3E\")";
@@ -23,26 +22,11 @@ export default async function Home() {
     );
   }
 
-  const supabase = createClient();
-  const years = await getYears(supabase);
-  const year = pickCurrent(years);
-
-  let mandapas: Mandapa[] = [];
-  let count = 0;
-  if (year) {
-    const { data, count: c } = await supabase
-      .from('mandapas')
-      .select('*', { count: 'exact' })
-      .eq('year_id', year.id)
-      .eq('status', 'published')
-      .order('name')
-      .limit(6);
-    mandapas = (data ?? []) as Mandapa[];
-    count = c ?? mandapas.length;
-  }
-
-  const { data: nt } = await supabase.from('notices').select('*').order('created_at', { ascending: false });
-  const notices = (nt ?? []) as Notice[];
+  const year = await getPublicYear();
+  const all = year ? await getPublicMandapas(year.id) : [];
+  const mandapas = all.slice(0, 6);
+  const count = all.length;
+  const notices = await getPublicNotices();
 
   return (
     <>

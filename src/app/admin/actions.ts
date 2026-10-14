@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { requireAdmin, logActivity } from '@/lib/admin';
 import { fromInputDT } from '@/lib/bn';
 import { getYears, pickCurrent } from '@/lib/data';
@@ -20,6 +20,7 @@ function backPath(f: FormData): string {
 
 function refresh() {
   revalidatePath('/', 'layout');
+  revalidateTag('mandapas');
 }
 
 function coords(f: FormData, back: string): { latitude: number | null; longitude: number | null } {

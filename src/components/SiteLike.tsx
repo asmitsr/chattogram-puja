@@ -16,19 +16,25 @@ export default function SiteLike() {
   const inflight = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const fetched = useRef(false);
+
+  // লাইকের সংখ্যা শুধু হোমপেজে দেখানো হয়, তাই অন্য পাতায় ঢুকলে সার্ভারে অকারণ অনুরোধ যায় না (একবারই আনা হয়)
   useEffect(() => {
-    let alive = true;
+    if (pathname !== '/' || fetched.current) return;
+    fetched.current = true;
     getSiteLikeTotal()
       .then((r) => {
-        if (!alive || !r.ok) return;
+        if (!r.ok) {
+          fetched.current = false;
+          return;
+        }
         base.current = r.count ?? 0;
         setCount(base.current + pending.current);
       })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, []);
+      .catch(() => {
+        fetched.current = false;
+      });
+  }, [pathname]);
 
   async function flush() {
     if (inflight.current || pending.current === 0) return;

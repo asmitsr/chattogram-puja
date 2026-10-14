@@ -18,7 +18,7 @@ export default function Header() {
         </Link>
         <SiteLike />
       </div>
-      <nav aria-label="প্রধান মেনু" className="wrap flex gap-1.5 overflow-x-auto pb-2">
+      <nav aria-label="প্রধান মেনু" className="wrap hidden gap-1.5 overflow-x-auto pb-2 md:flex">
         {LINKS.map(([href, label]) => (
           <Link
             key={href}

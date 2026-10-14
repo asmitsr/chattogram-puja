@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import BottomNav from '@/components/BottomNav';
 
 export const metadata: Metadata = {
   title: { default: 'চট্টগ্রামের পুজো', template: '%s · চট্টগ্রামের পুজো' },
@@ -30,6 +31,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        {/* ফোনে নিচের মেনুর জায়গা ফাঁকা রাখে, যাতে ফুটার ঢেকে না যায় */}
+        <div aria-hidden="true" className="h-16 md:hidden" />
+        <BottomNav />
       </body>
     </html>
   );
