@@ -1,6 +1,6 @@
 // আপনার Google My Maps (যেখানে সব ॐ চিহ্ন আছে)। Vercel-এ NEXT_PUBLIC_MY_MAPS_ID দিলে সেটি আগে ব্যবহার হয়।
 // এই লিংক খুললে গুগল ম্যাপে সেই মণ্ডপ ঘিরে আশেপাশের সব পূজার ॐ চিহ্নও দেখা যায় (বন্ধুর ম্যাপের মতো)।
-export const MY_MAPS_ID = process.env.NEXT_PUBLIC_MY_MAPS_ID || '11un1DpH9VJ2TsVjSuQs8ExkCsiKb_J0';
+export const MY_MAPS_ID = process.env.NEXT_PUBLIC_MY_MAPS_ID || '1NsBkf8AYv2m_gMkB-Hkk4xEz8OeWXa8';
 
 export function myMapsUrl(lat: number, lng: number, zoom = 16): string {
   return `https://www.google.com/maps/d/viewer?mid=${MY_MAPS_ID}&ll=${lat.toFixed(6)}%2C${lng.toFixed(6)}&z=${zoom}`;

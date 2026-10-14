@@ -1,11 +1,9 @@
+import Link from 'next/link';
 import Comments from '@/components/Comments';
-import MapView from '@/components/MapView';
-import { MAP_HEIGHT } from '@/components/mapKit';
+import PujaMapEmbed from '@/components/PujaMapEmbed';
 import ShareBar from '@/components/ShareBar';
 import { isAdminViewer } from '@/lib/admin';
-import { fetchPins } from '@/lib/pins';
 import { createClient } from '@/lib/supabase/server';
-import { bn } from '@/lib/bn';
 import type { MandapaComment } from '@/lib/types';
 
 export const metadata = { title: 'ম্যাপ' };
@@ -14,9 +12,7 @@ export const dynamic = 'force-dynamic';
 export default async function MapPage() {
   const supabase = createClient();
 
-  // ডাটাবেসের সব প্রকাশিত মণ্ডপ: অ্যাডমিন অনুমোদনের পর নতুন মণ্ডপও এখানে ॐ মার্কারে আসে
-  const [{ pins, noLoc }, { data, error }, isAdmin] = await Promise.all([
-    fetchPins(supabase),
+  const [{ data, error }, isAdmin] = await Promise.all([
     // ম্যাপ পাতার সাধারণ মতামত: নির্দিষ্ট কোনো মণ্ডপের নয় (mandapa_id ফাঁকা)
     supabase.from('comments').select('*').is('mandapa_id', null).order('created_at', { ascending: true }).limit(500),
     isAdminViewer(),
@@ -27,15 +23,18 @@ export default async function MapPage() {
       <div className="space-y-2">
         <h1 className="text-3xl text-accent">ম্যাপে মণ্ডপ</h1>
         <p className="muted">
-          ॐ চিহ্নে চাপ দিলে মণ্ডপের নাম ও বিস্তারিত দেখা যাবে। এখানে অনুমোদিত সব মণ্ডপ দেখানো হয়।
-          {pins.length > 0 && <> ম্যাপে এখন {bn(pins.length)}টি মণ্ডপ আছে।</>}
-          {noLoc > 0 && <> আরও {bn(noLoc)}টি মণ্ডপের সঠিক অবস্থান এখনো যোগ হয়নি।</>}
+          ॐ চিহ্নে চাপ দিলে মণ্ডপের নাম ও বিস্তারিত দেখা যাবে। ম্যাপে মহানগর, উত্তর ও দক্ষিণ চট্টগ্রাম আলাদা স্তরে (লেয়ারে) সাজানো।
+          &quot;গুগল ম্যাপে খুলুন&quot; বোতাম চাপলে আপনার ফোনের গুগল ম্যাপে সব পূজার ॐ চিহ্ন একসঙ্গে দেখা যায়।
         </p>
-        {pins.length > 0 ? (
-          <MapView pins={pins} height={MAP_HEIGHT} wheelZoom fullscreenToggle />
-        ) : (
-          <p className="card">এখনো ম্যাপে দেখানোর মতো অবস্থানসহ কোনো মণ্ডপ নেই।</p>
-        )}
+        <PujaMapEmbed />
+        <div className="card flex flex-wrap items-center justify-between gap-3">
+          <p className="muted">
+            আপনার এলাকার কোনো পূজা ম্যাপে নেই, বা কোনো তথ্য ভুল? জানান। যাচাইয়ের পর ম্যাপ হালনাগাদ করা হয়।
+          </p>
+          <Link href="/submit" className="btn">
+            নতুন তথ্য যুক্ত করুন
+          </Link>
+        </div>
       </div>
 
       <ShareBar title="চট্টগ্রামের পুজো — মণ্ডপের ম্যাপ" what="এই ম্যাপ" />
