@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-// ফোনের স্ক্রিনের নিচে অ্যাপের মতো মেনু (বড় পর্দায় দেখা যায় না; সেখানে উপরের মেনু থাকে)।
+// স্ক্রিনের নিচে অ্যাপের মতো স্থায়ী মেনু (ফোন ও বড় পর্দা দুই জায়গাতেই; উপরের বারে আর মেনু নেই)।
 const ITEMS: { href: string; label: string; icon: React.ReactNode }[] = [
   {
     href: '/',
@@ -39,7 +39,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="নিচের মেনু"
-      className="fixed inset-x-0 bottom-0 z-30 border-t-[3px] border-herogold bg-hero text-herofg md:hidden"
+      className="hx-bottom fixed inset-x-0 bottom-0 z-30"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <ul className="mx-auto flex max-w-5xl items-stretch justify-around">

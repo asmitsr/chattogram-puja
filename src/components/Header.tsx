@@ -1,34 +1,18 @@
 import Link from 'next/link';
+import Lotus from '@/components/Lotus';
 import SiteLike from '@/components/SiteLike';
 
-const LINKS: [string, string][] = [
-  ['/', 'হোম'],
-  ['/mandapa', 'পূজামণ্ডপ'],
-  ['/map', 'ম্যাপ'],
-  ['/schedule', 'সময়সূচি'],
-  ['/submit', 'তথ্য জমা দিন'],
-];
-
+// উপরের বারে শুধু নাম ও লাইক; পাতা বদলের মেনু নিচের স্থায়ী মেনুতে (BottomNav)।
 export default function Header() {
   return (
-    <header className="sticky top-0 z-20 border-b-[3px] border-herogold bg-hero text-herofg">
+    <header className="hx-header sticky top-0 z-20">
       <div className="wrap flex items-center justify-between gap-3 py-2.5">
-        <Link href="/" className="font-display text-xl text-herofg no-underline">
-          চট্টগ্রামের পুজো
+        <Link href="/" className="hx-brand no-underline">
+          <Lotus size={30} className="text-herogold" />
+          <span>চট্টগ্রামের পুজো</span>
         </Link>
         <SiteLike />
       </div>
-      <nav aria-label="প্রধান মেনু" className="wrap hidden gap-1.5 overflow-x-auto pb-2 md:flex">
-        {LINKS.map(([href, label]) => (
-          <Link
-            key={href}
-            href={href}
-            className="shrink-0 rounded-full border border-transparent px-3.5 py-1.5 font-medium text-herofg no-underline hover:border-herogold"
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
     </header>
   );
 }

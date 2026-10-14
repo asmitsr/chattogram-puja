@@ -70,20 +70,17 @@ export default function SiteLike() {
   if (count === null || pathname !== '/') return null;
 
   return (
-    <div className="flex shrink-0 flex-col items-end gap-1 leading-none">
-      <span className="text-[11px] text-herofg/80">পেজটি ভালো লাগলে লাইক দিন</span>
-      <button
-        type="button"
-        onClick={tap}
-        aria-label="পেজটিতে লাইক দিন"
-        className="inline-flex min-h-[34px] touch-manipulation select-none items-center gap-1.5 bg-transparent py-1 text-[13px] font-medium text-herofg transition active:opacity-70"
-      >
-        <span aria-hidden="true" className="text-[15px] leading-none transition-transform active:scale-125">
-          {tapped ? '❤️' : '🤍'}
-        </span>
-        <span>লাইক দিন</span>
-        <span className="font-semibold tabular-nums text-herogold">{bn(count)}</span>
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={tap}
+      aria-label="পেজটিতে লাইক দিন"
+      className="hx-like touch-manipulation select-none transition active:opacity-70"
+    >
+      <span aria-hidden="true" className="hx-like-heart transition-transform active:scale-125">
+        {tapped ? '♥' : '♡'}
+      </span>
+      <span>লাইক দিন</span>
+      <span className="font-semibold tabular-nums">{bn(count)}</span>
+    </button>
   );
 }

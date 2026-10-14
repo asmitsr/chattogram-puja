@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="flex-1">{children}</main>
         <Footer />
         {/* ফোনে নিচের মেনুর জায়গা ফাঁকা রাখে, যাতে ফুটার ঢেকে না যায় */}
-        <div aria-hidden="true" className="h-16 md:hidden" />
+        <div aria-hidden="true" className="h-16" />
         <BottomNav />
       </body>
     </html>

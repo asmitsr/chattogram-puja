@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Countdown from '@/components/Countdown';
+import Lotus from '@/components/Lotus';
 import MandapaCard from '@/components/MandapaCard';
 import { hasEnv } from '@/lib/auth';
 import { getPublicMandapas, getPublicNotices, getPublicYear } from '@/lib/publicData';
@@ -8,9 +9,6 @@ import { YEAR_STATUS } from '@/lib/types';
 
 // দর্শকদের হোম পাতা আগে থেকে তৈরি থাকে, ২ মিনিট পরপর (বা অ্যাডমিন বদলালেই) নতুন হয় — তাই খুব দ্রুত খোলে।
 export const revalidate = 120;
-
-const PATTERN =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%23F0C766' stroke-opacity='.28' stroke-width='1.2'%3E%3Cpath d='M20 4 L36 20 L20 36 L4 20 Z'/%3E%3Ccircle cx='20' cy='20' r='5'/%3E%3C/g%3E%3C/svg%3E\")";
 
 export default async function Home() {
   if (!hasEnv()) {
@@ -30,15 +28,43 @@ export default async function Home() {
 
   return (
     <>
-      <section className="bg-hero py-9 text-herofg" style={{ backgroundImage: PATTERN }}>
-        <div className="wrap">
-          <h1 className="text-[clamp(2.2rem,8vw,3.8rem)] text-herofg">চট্টগ্রামের পুজো</h1>
-          <p className="mt-3 max-w-xl opacity-95">
-            পাহাড়, নদী আর সাগরের এই শহরে সব পূজার মণ্ডপ, ঠিকানা ও সময়সূচি এক জায়গায়। অ্যাকাউন্ট ছাড়াই দেখা যায়।
+      <section className="hx">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/hero/scene.webp" alt="" className="hx-scene" width={2120} height={438} fetchPriority="low" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/hero/durga-face.webp" alt="দুর্গা মায়ের মুখের ছবি" className="hx-face" width={1144} height={1254} fetchPriority="high" />
+        <div className="hx-copy">
+          <div className="hx-orn" aria-hidden="true">
+            <i />
+            <Lotus size={34} />
+            <i />
+          </div>
+          <p className="hx-desc">পাহাড়, নদী আর সাগরের এই শহরে সব পূজার মণ্ডপ, ঠিকানা ও সময়সূচি এক জায়গায়।</p>
+          <h1 className="hx-title">চট্টগ্রামের পুজো</h1>
+          <p className="hx-sub">
+            <i aria-hidden="true" />
+            <span>শারদীয় দুর্গোৎসব ২০২৬</span>
+            <i aria-hidden="true" />
           </p>
-          <Countdown />
+          <div className="hx-btns">
+            <Link href="/mandapa" className="hx-btn hx-btn-gold">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="m16 16 4.5 4.5" />
+              </svg>
+              মণ্ডপ খুঁজুন
+            </Link>
+            <Link href="/map" className="hx-btn hx-btn-line">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
+              </svg>
+              ম্যাপ দেখুন
+            </Link>
+          </div>
         </div>
       </section>
+
+      <Countdown />
 
       <div className="wrap space-y-6 py-6">
         {notices.map((nn) => (
