@@ -1,12 +1,16 @@
 import Link from 'next/link';
+import InstallApp from '@/components/InstallApp';
 
 export default function Footer() {
   return (
     <footer className="border-t-[3px] border-herogold bg-hero py-4 text-sm text-herofg">
       <div className="wrap flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <p className="opacity-95">
-          চট্টগ্রামের পুজো · মণ্ডপ, ম্যাপ ও সময়সূচি
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className="opacity-95">
+            চট্টগ্রামের পুজো · মণ্ডপ, ম্যাপ ও সময়সূচি
+          </p>
+          <InstallApp />
+        </div>
         <div className="flex items-center gap-2">
           <Link href="/admin/login" className="text-xs text-herofg no-underline opacity-90">
             অ্যাডমিন: Asmit Sarkar

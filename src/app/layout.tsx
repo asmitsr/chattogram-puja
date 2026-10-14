@@ -1,5 +1,5 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BottomNav from '@/components/BottomNav';
@@ -7,7 +7,13 @@ import BottomNav from '@/components/BottomNav';
 export const metadata: Metadata = {
   title: { default: 'চট্টগ্রামের পুজো', template: '%s · চট্টগ্রামের পুজো' },
   description: 'চট্টগ্রামের পূজামণ্ডপ, ঠিকানা, ম্যাপ ও সময়সূচি এক জায়গায়।',
+  applicationName: 'চট্টগ্রামের পুজো',
+  icons: { icon: '/icons/icon-192.png', apple: '/icons/apple-touch-icon.png' },
+  appleWebApp: { capable: true, title: 'চট্টগ্রামের পুজো', statusBarStyle: 'black-translucent' },
 };
+
+// ফোনের ব্রাউজার/অ্যাপের ওপরের বারের রং
+export const viewport: Viewport = { themeColor: '#34010a' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
