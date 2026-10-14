@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
-import { MAP_BG, MapFullscreenButton, addPins, createBaseMap, mapBoxClass, shellClass, type Pin } from '@/components/mapKit';
+import { MAP_BG, MapFullscreenButton, MapLegend, addPins, createBaseMap, mapBoxClass, shellClass, type Pin } from '@/components/mapKit';
 
 export type { Pin };
 
@@ -124,6 +124,7 @@ export default function MapView({
         role="application"
         aria-label="ম্যাপ"
       />
+      {!full && pins.length > 1 && <MapLegend />}
       {fullscreenToggle && (
         <MapFullscreenButton
           full={full}

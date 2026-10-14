@@ -29,22 +29,59 @@ export const MAP_BG = '#f2efe9';
 // ছোট অবস্থায় ম্যাপের উচ্চতা (দুই পাতাতেই একই)
 export const MAP_HEIGHT = 'clamp(260px, 38vh, 420px)';
 
-// সব মণ্ডপের জন্য একই ॐ মার্কার: মেরুন বৃত্ত, সোনালি কিনারা, ভেতরে ॐ
-export function omIcon(L: any, size: number, focus = false) {
-  const bg = focus ? '#c8102e' : '#7a1424';
-  const border = focus ? '#ffffff' : '#f0c766';
-  const shadow = focus ? '0 0 0 4px rgba(240,199,102,.95),0 3px 10px rgba(0,0,0,.65)' : '0 2px 6px rgba(0,0,0,.55)';
-  const color = focus ? '#ffffff' : '#f0c766';
-  return L.divIcon({
-    className: '',
-    html:
-      `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:3px solid ${border};` +
-      `box-shadow:${shadow};display:flex;align-items:center;justify-content:center;` +
-      `color:${color};font-weight:700;font-size:${Math.round(size * 0.55)}px;line-height:1;font-family:'Noto Sans Devanagari','Noto Sans Bengali',sans-serif">ॐ</div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -size / 2],
+// এলাকা অনুযায়ী ॐ পিনের রং (Google My Maps-এর সঙ্গে হুবহু এক):
+// মহানগর = কমলা, উত্তর চট্টগ্রাম = টিল (সবুজাভ নীল), দক্ষিণ চট্টগ্রাম = নীলচে বেগুনি, এলাকা মেলে না = গোলাপি
+export type AreaKey = 'metro' | 'north' | 'south' | 'new';
+
+export const AREA_LABEL: Record<AreaKey, string> = {
+  metro: 'মহানগর চট্টগ্রাম',
+  north: 'উত্তর চট্টগ্রাম',
+  south: 'দক্ষিণ চট্টগ্রাম',
+  new: 'নতুন যোগ হওয়া',
+};
+export const AREA_COLOR: Record<AreaKey, string> = {
+  metro: '#d15e08',
+  north: '#0f8a86',
+  south: '#2e2d8d',
+  new: '#a7214f',
+};
+
+export function areaKey(area: string | null | undefined): AreaKey {
+  const a = (area ?? '').normalize('NFC');
+  if (a.includes('মেট্রোপলিটন') || a.includes('মহানগর') || a.includes('কোতোয়ালী')) return 'metro';
+  if (a.includes('উত্তর চট্টগ্রাম')) return 'north';
+  if (a.includes('দক্ষিণ চট্টগ্রাম')) return 'south';
+  return 'new';
+}
+
+// ছোট ও পরিষ্কার ॐ পিন (৬৪×৮০ ছবির ছোট রূপ); নিচের সূচালো মাথা ঠিক জায়গাটি দেখায়।
+// focus = true হলে (বিস্তারিত পাতার নিজের মণ্ডপ) পিনটি বড় দেখানো হয়।
+export function omIcon(L: any, key: AreaKey, focus = false) {
+  const w = focus ? 42 : 26;
+  const h = Math.round((w * 80) / 64);
+  return L.icon({
+    iconUrl: `/pins/om-${key}.png`,
+    iconSize: [w, h],
+    iconAnchor: [w / 2, h - 1],
+    popupAnchor: [0, -h + 4],
+    className: focus ? 'om-pin om-pin-focus' : 'om-pin',
   });
+}
+
+// ম্যাপের নিচে রঙের পরিচয়
+export function MapLegend() {
+  const keys: AreaKey[] = ['metro', 'north', 'south'];
+  return (
+    <ul className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" aria-label="পিনের রঙের পরিচয়">
+      {keys.map((k) => (
+        <li key={k} className="flex items-center gap-1.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`/pins/om-${k}.png`} alt="" width={16} height={20} />
+          <span>{AREA_LABEL[k]}</span>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 // একই ধরনের ম্যাপ তৈরি: একই টাইল, একই জুম বোতাম (বাঁ ওপরে), একই ভাষা
@@ -118,7 +155,7 @@ export function addPins(
     box.appendChild(actions);
 
     const marker = L.marker([p.lat, p.lng], {
-      icon: omIcon(L, p.focus ? 46 : pins.length === 1 ? 40 : 34, !!p.focus),
+      icon: omIcon(L, areaKey(p.area), !!p.focus),
       title: p.name,
       riseOnHover: true,
       zIndexOffset: p.focus ? 1000 : 0,

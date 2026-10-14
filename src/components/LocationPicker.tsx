@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { findShortLink, inChattogram, parseCoords } from '@/lib/mapLink';
-import { MAP_BG, MAP_CENTER, MAP_HEIGHT, MapFullscreenButton, addPins, createBaseMap, mapBoxClass, shellClass, type Pin } from '@/components/mapKit';
+import { MAP_BG, MAP_CENTER, MAP_HEIGHT, MapFullscreenButton, MapLegend, addPins, createBaseMap, mapBoxClass, shellClass, type Pin } from '@/components/mapKit';
 
 type LL = { lat: number; lng: number };
 
@@ -333,6 +333,7 @@ export default function LocationPicker({ pins = [] }: { pins?: Pin[] }) {
 
       {!full && (
         <>
+          <MapLegend />
           <p className="muted">ম্যাপে মণ্ডপের জায়গায় ট্যাপ করে লাল পিন বসান, পিনটি টেনে সরানো যায়। ॐ চিহ্নগুলো আগে থেকে ম্যাপে থাকা মণ্ডপ; চাপলে নাম দেখা যাবে। বড় করে দেখতে ওপরের ডানের ⛶ বোতাম চাপুন।</p>
           <div className="space-y-3 rounded-md border border-line bg-surface p-3">
             <a href={gmapsHref} target="_blank" rel="noopener noreferrer" className="btn w-full justify-center no-underline">
