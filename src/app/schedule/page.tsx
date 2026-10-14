@@ -1,84 +1,74 @@
-import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
-import { getYears, pickCurrent } from '@/lib/data';
-import { bn, dayKey, fmtDate, fmtTime } from '@/lib/bn';
+import { SCHEDULE_HEADERS as H, SCHEDULE_ROWS, SCHEDULE_SUB, SCHEDULE_TITLE } from '@/lib/pujaSchedule';
 
-export const dynamic = 'force-dynamic';
 export const metadata = { title: 'সময়সূচি' };
 
-interface Row {
-  id: string;
-  title: string;
-  starts_at: string | null;
-  ends_at: string | null;
-  details: string | null;
-  mandapas: { id: string; name: string; area: string | null; year_id: string } | null;
-}
-
-export default async function SchedulePage() {
-  const supabase = createClient();
-  const year = pickCurrent(await getYears(supabase));
-
-  let rows: Row[] = [];
-  if (year) {
-    const { data } = await supabase
-      .from('schedules')
-      .select('id,title,starts_at,ends_at,details,mandapas!inner(id,name,area,year_id,status)')
-      .eq('mandapas.year_id', year.id)
-      .eq('mandapas.status', 'published')
-      .not('starts_at', 'is', null)
-      .order('starts_at');
-    rows = (data ?? []) as unknown as Row[];
-  }
-
-  const groups = new Map<string, Row[]>();
-  rows.forEach((r) => {
-    const k = dayKey(r.starts_at!);
-    groups.set(k, [...(groups.get(k) ?? []), r]);
-  });
-
+export default function SchedulePage() {
   return (
     <div className="wrap py-6">
-      <h1 className="text-3xl text-accent">পূজার সময়সূচি</h1>
-      <p className="muted mt-1">{year ? `${bn(year.year)} সাল · দিন অনুযায়ী সব মণ্ডপের কর্মসূচি` : ''}</p>
+      <header className="border-b-2 border-gold pb-3">
+        <h1 className="font-display text-3xl leading-snug text-accent">{SCHEDULE_TITLE}</h1>
+        <p className="mt-1 font-display text-xl text-gold">{SCHEDULE_SUB}</p>
+      </header>
 
-      {rows.length === 0 ? (
-        <div className="card mt-6 space-y-2">
-          <p>এখনো কোনো মণ্ডপের সময়সূচি যোগ হয়নি।</p>
-          <p className="muted">কোনো মণ্ডপের পূজা, অঞ্জলি বা বিসর্জনের সময় জানা থাকলে জানিয়ে দিন।</p>
-          <Link href="/submit" className="btn-ghost">
-            সময়সূচির তথ্য জানান
-          </Link>
-        </div>
-      ) : (
-        <div className="mt-5 space-y-6">
-          {Array.from(groups.entries()).map(([k, items]) => (
-            <section key={k}>
-              <h2 className="mb-2 text-2xl text-accent">{fmtDate(items[0].starts_at)}</h2>
-              <ul className="space-y-2">
-                {items.map((r) => (
-                  <li key={r.id} className="card grid gap-1 sm:grid-cols-[8rem_1fr] sm:gap-4">
-                    <div className="font-display text-lg text-gold">
-                      {fmtTime(r.starts_at)}
-                      {r.ends_at ? ` – ${fmtTime(r.ends_at)}` : ''}
-                    </div>
-                    <div>
-                      <b>{r.title}</b>
-                      {r.mandapas && (
-                        <div className="muted">
-                          <Link href={`/mandapa/${r.mandapas.id}`}>{r.mandapas.name}</Link>
-                          {r.mandapas.area ? ` · ${r.mandapas.area}` : ''}
-                        </div>
-                      )}
-                      {r.details && <p className="mt-1">{r.details}</p>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
-      )}
+      {/* ছোট পর্দা (ফোন): প্রতিটি আচার একটি কার্ডে */}
+      <ol className="mt-5 space-y-4 md:hidden">
+        {SCHEDULE_ROWS.map((r, i) => (
+          <li key={i} className="overflow-hidden rounded-md border border-line bg-surface">
+            <div className="border-b border-line bg-goldsoft px-4 py-3">
+              <h2 className="font-display text-xl leading-snug text-accent">{r.ritual}</h2>
+              <p className="mt-1 font-semibold text-gold">{r.date}</p>
+            </div>
+            <div className="space-y-3 px-4 py-3">
+              <div className="border-l-4 border-accent pl-3">
+                <h3 className="text-sm font-bold text-accent">{H.guptapress.label}</h3>
+                <p className="text-xs text-muted">{H.guptapress.note}</p>
+                <p className="mt-1">{r.guptapress}</p>
+              </div>
+              <div className="border-l-4 border-gold pl-3">
+                <h3 className="text-sm font-bold text-gold">{H.bishuddha.label}</h3>
+                <p className="text-xs text-muted">{H.bishuddha.note}</p>
+                <p className="mt-1">{r.bishuddha}</p>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      {/* বড় পর্দা: ছক */}
+      <div className="mt-5 hidden overflow-x-auto rounded-md border border-line md:block">
+        <table className="w-full border-collapse text-left">
+          <thead>
+            <tr className="bg-hero text-herofg">
+              <th scope="col" className="w-[17%] px-4 py-3 align-bottom font-display text-lg font-normal">
+                {H.ritual}
+              </th>
+              <th scope="col" className="w-[15%] px-4 py-3 align-bottom font-display text-lg font-normal">
+                {H.date}
+              </th>
+              <th scope="col" className="w-[34%] px-4 py-3 align-bottom font-display text-lg font-normal">
+                {H.guptapress.label}
+                <span className="block font-body text-xs text-herogold">{H.guptapress.note}</span>
+              </th>
+              <th scope="col" className="w-[34%] px-4 py-3 align-bottom font-display text-lg font-normal">
+                {H.bishuddha.label}
+                <span className="block font-body text-xs text-herogold">{H.bishuddha.note}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {SCHEDULE_ROWS.map((r, i) => (
+              <tr key={i} className={i % 2 === 0 ? 'bg-surface' : 'bg-goldsoft'}>
+                <th scope="row" className="border-t border-line px-4 py-3 align-top font-display text-lg font-normal text-accent">
+                  {r.ritual}
+                </th>
+                <td className="border-t border-line px-4 py-3 align-top font-semibold text-gold">{r.date}</td>
+                <td className="border-t border-line px-4 py-3 align-top">{r.guptapress}</td>
+                <td className="border-t border-line px-4 py-3 align-top">{r.bishuddha}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
