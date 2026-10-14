@@ -13,6 +13,11 @@ function go(path: string, kind: 'ok' | 'err', msg: string): never {
   redirect(`${path}${path.includes('?') ? '&' : '?'}${kind}=${encodeURIComponent(msg)}`);
 }
 
+// জমার পাতা থেকে ফিরে যাওয়ার পথ (শুধু জানা দুটি পাতা)
+function backPath(f: FormData): string {
+  return val(f, 'back') === '/admin/corrections' ? '/admin/corrections' : '/admin/submissions';
+}
+
 function refresh() {
   revalidatePath('/', 'layout');
 }
@@ -37,7 +42,7 @@ export async function approveSubmission(formData: FormData): Promise<void> {
   const note = nz(val(formData, 'note'));
   // mode=publish: সঙ্গে সঙ্গে সাইটে প্রকাশ; mode=draft: খসড়া করে সম্পাদনার পাতা খোলা
   const mode = val(formData, 'mode') === 'draft' ? 'draft' : 'publish';
-  const back = '/admin/submissions';
+  const back = backPath(formData);
 
   const { data: sub } = await supabase.from('submissions').select('*').eq('id', id).maybeSingle();
   if (!sub) go(back, 'err', 'জমাটি পাওয়া যায়নি।');
@@ -107,7 +112,7 @@ export async function approveSubmission(formData: FormData): Promise<void> {
     if (mode === 'draft') go(`/admin/mandapas/${newId}`, 'ok', 'খসড়া মণ্ডপ তৈরি হয়েছে। তথ্য মিলিয়ে প্রকাশ করুন।');
     go(back, 'ok', `"${p.name}" অনুমোদিত হয়ে সাইটের মণ্ডপ-তালিকায় প্রকাশ হয়েছে।`);
   }
-  go(back, 'ok', 'অনুমোদিত হয়েছে। প্রয়োজনীয় পরিবর্তন নিজে করে নিন।');
+  go(back, 'ok', sub.kind === 'correction' ? 'সংশোধনের অনুরোধটি "সম্পন্ন" চিহ্নিত হয়েছে।' : 'অনুমোদিত হয়েছে। প্রয়োজনীয় পরিবর্তন নিজে করে নিন।');
 }
 
 export async function rejectSubmission(formData: FormData): Promise<void> {
@@ -120,7 +125,7 @@ export async function rejectSubmission(formData: FormData): Promise<void> {
     .eq('id', id)
     .eq('status', 'pending');
   await logActivity(supabase, user, 'submission.reject', 'submissions', id, { note });
-  go('/admin/submissions', 'ok', 'প্রত্যাখ্যান করা হয়েছে।');
+  go(backPath(formData), 'ok', 'প্রত্যাখ্যান করা হয়েছে।');
 }
 
 /* ---------- মণ্ডপ ---------- */

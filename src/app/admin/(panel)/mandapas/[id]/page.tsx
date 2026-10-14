@@ -16,6 +16,12 @@ export default async function EditMandapa({ params, searchParams }: { params: { 
   const years = await getYears(supabase);
   const { data: s } = await supabase.from('schedules').select('*').eq('mandapa_id', m.id).order('starts_at');
   const schedules = (s ?? []) as Schedule[];
+  const { count: corrCount } = await supabase
+    .from('submissions')
+    .select('id', { count: 'exact', head: true })
+    .eq('kind', 'correction')
+    .eq('status', 'pending')
+    .eq('payload->>mandapa_id', m.id);
 
   return (
     <div className="space-y-6">
@@ -30,6 +36,12 @@ export default async function EditMandapa({ params, searchParams }: { params: { 
       </p>
       <h1 className="text-3xl text-accent">{m.name}</h1>
       <Flash ok={searchParams.ok} err={searchParams.err} />
+
+      {(corrCount ?? 0) > 0 && (
+        <p className="rounded-md bg-goldsoft p-3">
+          এই মণ্ডপের জন্য <b>{corrCount}টি</b> সংশোধনের অনুরোধ অপেক্ষায় আছে। <Link href="/admin/corrections">অনুরোধগুলো দেখুন</Link>।
+        </p>
+      )}
 
       <MandapaForm mandapa={m} years={years} />
 
@@ -56,14 +68,15 @@ export default async function EditMandapa({ params, searchParams }: { params: { 
           </div>
         ))}
 
-        <form action={addSchedule} className="card space-y-3">
-          <h3 className="text-lg">নতুন সময়সূচি যোগ করুন</h3>
+        <details className="card">
+          <summary className="cursor-pointer text-lg font-semibold">নতুন সময়সূচি যোগ করুন (ঐচ্ছিক)</summary>
+        <form action={addSchedule} className="mt-3 space-y-3">
           <input type="hidden" name="mandapa_id" value={m.id} />
           <div>
             <label className="label" htmlFor="s-title">
               কর্মসূচির নাম
             </label>
-            <input id="s-title" name="title" className="input" required placeholder="যেমন: সন্ধ্যা আরতি" />
+            <input id="s-title" name="title" className="input" placeholder="যেমন: সন্ধ্যা আরতি" />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
@@ -89,6 +102,7 @@ export default async function EditMandapa({ params, searchParams }: { params: { 
             যোগ করুন
           </button>
         </form>
+        </details>
       </section>
 
       <section className="card space-y-3 border-err">

@@ -13,19 +13,19 @@ const FAB =
 // লোকেশন বাছাই: /map পাতার একই ম্যাপ (একই টাইল, জুম বোতাম, ॐ মার্কার ও ফুল-স্ক্রিন বোতাম)।
 // এতে ট্যাপ করে পিন বসানো, পিন টানা, GPS ও লিংক পেস্ট করা যায়।
 // অক্ষাংশ-দ্রাঘিমাংশ ব্যবহারকারীকে দেখানো হয় না; লুকানো ঘরে ফর্মের সঙ্গে যায়।
-export default function LocationPicker({ pins = [] }: { pins?: Pin[] }) {
+export default function LocationPicker({ pins = [], initial = null }: { pins?: Pin[]; initial?: LL | null }) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const meRef = useRef<any[]>([]);
   const libRef = useRef<any>(null);
-  const posRef = useRef<LL | null>(null);
+  const posRef = useRef<LL | null>(initial);
   // ফুল-স্ক্রিন বদলালে ম্যাপ নতুন করে তৈরি হয় (এতে টাইল সাদা হওয়ার সমস্যা হয় না); আগের জায়গা ও জুম মনে রাখা হয়
   const viewRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
   const restoreRef = useRef(false);
 
   const [ready, setReady] = useState(false);
-  const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [pos, setPos] = useState<{ lat: number; lng: number } | null>(initial);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [paste, setPaste] = useState('');

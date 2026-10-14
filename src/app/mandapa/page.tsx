@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import MandapaCard from '@/components/MandapaCard';
 import { createClient } from '@/lib/supabase/server';
-import { getYears, pickCurrent } from '@/lib/data';
+import { fetchAllPublished, getYears, pickCurrent } from '@/lib/data';
 import { bn } from '@/lib/bn';
 import { matches } from '@/lib/search';
 import type { Mandapa } from '@/lib/types';
@@ -13,16 +13,8 @@ export default async function MandapaList({ searchParams }: { searchParams: { q?
   const supabase = createClient();
   const year = pickCurrent(await getYears(supabase));
 
-  let all: Mandapa[] = [];
-  if (year) {
-    const { data } = await supabase
-      .from('mandapas')
-      .select('*')
-      .eq('year_id', year.id)
-      .eq('status', 'published')
-      .order('name');
-    all = (data ?? []) as Mandapa[];
-  }
+  // প্রকাশিত সবগুলো মণ্ডপই আসে (কোনো সীমা নেই)
+  const all: Mandapa[] = year ? await fetchAllPublished(supabase, year.id) : [];
 
   const areas = Array.from(new Set(all.map((m) => m.area).filter(Boolean) as string[])).sort();
   const q = (searchParams.q ?? '').trim();

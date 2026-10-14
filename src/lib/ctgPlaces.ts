@@ -54,3 +54,33 @@ export function isValidPlace(thana: string, locality: string): boolean {
   if (!list) return false;
   return locality === OTHER_AREA || list.includes(locality);
 }
+
+// ---- অঞ্চল: মহানগর / উত্তর চট্টগ্রাম / দক্ষিণ চট্টগ্রাম ----
+// অ্যাডমিন তালিকার ফিল্টারে ব্যবহার হয়। বিন্যাস বদলাতে চাইলে শুধু নিচের দুটি তালিকা বদলান।
+export type RegionKey = 'metro' | 'north' | 'south' | 'other';
+export const REGION_LABEL: Record<RegionKey, string> = {
+  metro: 'মহানগর',
+  north: 'উত্তর চট্টগ্রাম',
+  south: 'দক্ষিণ চট্টগ্রাম',
+  other: 'অন্যান্য',
+};
+const NORTH_UPAZILAS = ['হাটহাজারী', 'ফটিকছড়ি', 'রাউজান', 'রাঙ্গুনিয়া', 'সীতাকুণ্ড', 'মীরসরাই'];
+const SOUTH_UPAZILAS = ['বোয়ালখালী', 'পটিয়া', 'চন্দনাইশ', 'সাতকানিয়া', 'লোহাগাড়া', 'বাঁশখালী', 'আনোয়ারা', 'সন্দ্বীপ'];
+const METRO_THANAS = Object.keys(CTG_GROUPS[0]?.places ?? {});
+
+// এলাকার লেখা (যেমন "মেট্রোপলিটন এলাকা (মহানগর)", "দক্ষিণ চট্টগ্রাম", "জ্যেষ্ঠপুরা, শ্রীপুর-খরন্দ্বীপ, বোয়ালখালী, চট্টগ্রাম") থেকে অঞ্চল চেনা
+export function regionOf(area: string | null | undefined): RegionKey {
+  const a = (area ?? '').normalize('NFC');
+  if (!a) return 'other';
+  if (a.includes('মেট্রোপলিটন') || a.includes('মহানগর')) return 'metro';
+  if (a.includes('উত্তর চট্টগ্রাম')) return 'north';
+  if (a.includes('দক্ষিণ চট্টগ্রাম')) return 'south';
+  // ফর্মে থানা বেছে জমা দিলে এলাকা "এলাকা, থানা, চট্টগ্রাম" আকারে থাকে
+  const parts = a.split(',').map((s) => s.trim());
+  for (const part of parts) {
+    if (NORTH_UPAZILAS.includes(part)) return 'north';
+    if (SOUTH_UPAZILAS.includes(part)) return 'south';
+  }
+  for (const part of parts) if (METRO_THANAS.includes(part)) return 'metro';
+  return 'other';
+}

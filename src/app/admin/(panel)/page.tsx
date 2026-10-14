@@ -9,7 +9,16 @@ export default async function Dashboard() {
   const years = await getYears(supabase);
   const year = pickCurrent(years);
 
-  const { count: pending } = await supabase.from('submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+  const { count: pending } = await supabase
+    .from('submissions')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending')
+    .neq('kind', 'correction');
+  const { count: pendingCorr } = await supabase
+    .from('submissions')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending')
+    .eq('kind', 'correction');
 
   const counts: Record<string, number> = { draft: 0, published: 0, archived: 0 };
   if (year) {
@@ -27,10 +36,14 @@ export default async function Dashboard() {
     <div className="space-y-6">
       <h1 className="text-3xl text-accent">অ্যাডমিন ড্যাশবোর্ড</h1>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Link href="/admin/submissions" className="card no-underline">
           <div className="muted">অপেক্ষমাণ জমা</div>
           <b className="font-display text-4xl text-fg">{bn(pending ?? 0)}</b>
+        </Link>
+        <Link href="/admin/corrections" className="card no-underline">
+          <div className="muted">সংশোধনের অনুরোধ</div>
+          <b className="font-display text-4xl text-fg">{bn(pendingCorr ?? 0)}</b>
         </Link>
         <div className="card">
           <div className="muted">বর্তমান বছর</div>

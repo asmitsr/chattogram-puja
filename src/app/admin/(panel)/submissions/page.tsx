@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import Flash from '@/components/Flash';
 import MapView from '@/components/MapView';
 import { requireAdmin } from '@/lib/admin';
@@ -9,7 +10,7 @@ import { approveSubmission, rejectSubmission } from '../../actions';
 export default async function SubmissionsPage({ searchParams }: { searchParams: { ok?: string; err?: string } }) {
   const { supabase } = await requireAdmin();
 
-  const { data } = await supabase.from('submissions').select('*').order('created_at', { ascending: false }).limit(60);
+  const { data } = await supabase.from('submissions').select('*').neq('kind', 'correction').order('created_at', { ascending: false }).limit(60);
   const subs = (data ?? []) as Submission[];
 
   const ids = Array.from(new Set(subs.map((s) => s.user_id).filter((x): x is string => Boolean(x))));
@@ -25,6 +26,9 @@ export default async function SubmissionsPage({ searchParams }: { searchParams: 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl text-accent">জমা দেওয়া তথ্য</h1>
+      <p className="muted">
+        মণ্ডপের তথ্যের ভুল সংশোধনের অনুরোধ আলাদা পাতায় জমা হয়: <Link href="/admin/corrections">সংশোধনের অনুরোধ দেখুন</Link>।
+      </p>
       <Flash ok={searchParams.ok} err={searchParams.err} />
 
       <section className="space-y-3">

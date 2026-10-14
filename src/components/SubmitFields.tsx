@@ -2,24 +2,11 @@ import LocationGuide from '@/components/LocationGuide';
 import LocationPicker from '@/components/LocationPicker';
 import PlacePicker from '@/components/PlacePicker';
 import type { Pin } from '@/components/mapKit';
-import { KIND_LABEL } from '@/lib/types';
 
-// জমা দেওয়ার ফর্মের ঘরগুলো (ম্যাপ ও সময়সূচিসহ)
+// নতুন মণ্ডপ / সময়সূচি জমা দেওয়ার ফর্মের ঘরগুলো (ম্যাপ ও সময়সূচিসহ)। "কী জানাতে চান?" বাছাই SubmitForm-এ।
 export default function SubmitFields({ pins = [] }: { pins?: Pin[] }) {
   return (
     <>
-      <div>
-        <label className="label" htmlFor="kind">
-          কী জানাতে চান?
-        </label>
-        <select id="kind" name="kind" className="input" defaultValue="new_mandapa">
-          {Object.entries(KIND_LABEL).map(([v, l]) => (
-            <option key={v} value={v}>
-              {l}
-            </option>
-          ))}
-        </select>
-      </div>
       <div>
         <label className="label" htmlFor="name">
           মণ্ডপের নাম

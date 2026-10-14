@@ -142,7 +142,7 @@ export default async function MandapaDetail({ params }: { params: { id: string }
       </section>
 
       <p className="muted">
-        তথ্যে ভুল আছে? <Link href="/submit">সংশোধনের অনুরোধ জানান</Link>।
+        তথ্যে ভুল আছে? <Link href={`/submit?kind=correction&mandapa=${m.id}`}>সংশোধনের অনুরোধ জানান</Link>।
       </p>
     </div>
   );

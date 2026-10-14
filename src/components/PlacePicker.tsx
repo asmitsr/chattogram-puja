@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { CTG_FLAT, CTG_GROUPS, OTHER_AREA } from '@/lib/ctgPlaces';
 
 // চট্টগ্রামের থানা/উপজেলা বেছে নিলে নিচে তার এলাকার তালিকা আসে
-export default function PlacePicker() {
+export default function PlacePicker({ optional = false }: { optional?: boolean }) {
   const [thana, setThana] = useState('');
   const list = thana ? CTG_FLAT[thana] ?? [] : [];
 
@@ -14,7 +14,7 @@ export default function PlacePicker() {
         <label className="label" htmlFor="thana">
           থানা / উপজেলা (চট্টগ্রাম জেলা)
         </label>
-        <select id="thana" name="thana" className="input" required value={thana} onChange={(e) => setThana(e.target.value)}>
+        <select id="thana" name="thana" className="input" required={!optional} value={thana} onChange={(e) => setThana(e.target.value)}>
           <option value="">বেছে নিন</option>
           {CTG_GROUPS.map((g) => (
             <optgroup key={g.label} label={g.label}>
@@ -31,7 +31,7 @@ export default function PlacePicker() {
         <label className="label" htmlFor="locality">
           এলাকা
         </label>
-        <select id="locality" name="locality" className="input" required disabled={!thana} defaultValue="" key={thana}>
+        <select id="locality" name="locality" className="input" required={!optional} disabled={!thana} defaultValue="" key={thana}>
           <option value="">{thana ? 'এলাকা বেছে নিন' : 'আগে থানা/উপজেলা বেছে নিন'}</option>
           {list.map((a) => (
             <option key={a} value={a}>

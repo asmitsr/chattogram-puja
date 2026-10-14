@@ -8,6 +8,7 @@ export const metadata = { title: 'অ্যাডমিন', robots: { index: fa
 const LINKS: [string, string][] = [
   ['/admin', 'ড্যাশবোর্ড'],
   ['/admin/submissions', 'অপেক্ষমাণ জমা'],
+  ['/admin/corrections', 'সংশোধনের অনুরোধ'],
   ['/admin/mandapas', 'মণ্ডপ'],
   ['/admin/years', 'পূজাবর্ষ'],
   ['/admin/comments', 'মন্তব্য'],
