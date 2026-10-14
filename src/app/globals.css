@@ -51,7 +51,8 @@ html {
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: 'Hind Siliguri', 'Noto Sans Bengali', 'Segoe UI', sans-serif;
+  /* 'Noto Sans Bengali' এখানে শুধু সংখ্যার জন্য (layout.tsx দেখুন) */
+  font-family: 'Noto Sans Bengali', 'Hind Siliguri', 'Segoe UI', sans-serif;
   font-size: 16px;
   line-height: 1.65;
 }
@@ -59,7 +60,7 @@ body {
 h1,
 h2,
 h3 {
-  font-family: 'Tiro Bangla', 'Noto Serif Bengali', Georgia, serif;
+  font-family: 'Noto Sans Bengali', 'Tiro Bangla', 'Noto Serif Bengali', Georgia, serif;
   font-weight: 400;
   line-height: 1.25;
   text-wrap: balance;

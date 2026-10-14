@@ -25,8 +25,8 @@ const config: Config = {
         err: 'var(--err)',
       },
       fontFamily: {
-        display: ['"Tiro Bangla"', '"Noto Serif Bengali"', 'Georgia', 'serif'],
-        body: ['"Hind Siliguri"', '"Noto Sans Bengali"', '"Segoe UI"', 'sans-serif'],
+        display: ['"Noto Sans Bengali"', '"Tiro Bangla"', '"Noto Serif Bengali"', 'Georgia', 'serif'],
+        body: ['"Noto Sans Bengali"', '"Hind Siliguri"', '"Segoe UI"', 'sans-serif'],
       },
     },
   },
