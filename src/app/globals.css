@@ -688,45 +688,26 @@ a {
   color: #fbeed6;
 }
 
-/* হিরো */
+/* হিরো — ছবির ওপর কোনো রঙ/ওভারলে নেই; মোবাইলে ছবি ওপরে (শুধু বাঁ দিক সামান্য ক্রপ), লেখা নিচে */
 .hx {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  min-height: 470px;
-  color: #f9ecd2;
-  background: linear-gradient(100deg, #34010a 0%, #430510 50%, #560a14 100%);
+  color: #301016;
+  background: #f6e6c5;
 }
-.hx-scene {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  z-index: 0;
+.hx-bg {
+  display: block;
   width: 100%;
   height: auto;
-  max-height: 44%;
+  aspect-ratio: 4 / 3.3;
   object-fit: cover;
-  object-position: left bottom;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 40%);
-  mask-image: linear-gradient(to bottom, transparent 0, #000 40%);
-}
-.hx-face {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 1;
-  height: 100%;
-  width: 47%;
-  object-fit: cover;
-  object-position: 22% 30%;
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 20%);
-  mask-image: linear-gradient(to right, transparent 0, #000 20%);
+  object-position: 100% 30%;
 }
 .hx-copy {
   position: relative;
   z-index: 2;
-  width: 55%;
-  padding: 1.4rem 0.4rem 6.2rem 1rem;
+  padding: 0.3rem 1.2rem 1.8rem;
   text-align: center;
 }
 .hx-orn {
@@ -734,7 +715,7 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  color: var(--hx-gold);
+  color: #b97b35;
 }
 .hx-orn i,
 .hx-sub i {
@@ -742,34 +723,33 @@ a {
   flex: 1;
   max-width: 5rem;
   height: 1px;
-  background: linear-gradient(to right, transparent, rgba(233, 198, 110, 0.75));
+  background: linear-gradient(to right, transparent, rgba(185, 123, 53, 0.8));
 }
 .hx-orn i:last-child,
 .hx-sub i:last-child {
-  background: linear-gradient(to left, transparent, rgba(233, 198, 110, 0.75));
+  background: linear-gradient(to left, transparent, rgba(185, 123, 53, 0.8));
 }
 .hx-desc {
   margin-top: 0.6rem;
-  font-size: 0.86rem;
+  font-size: 0.95rem;
   line-height: 1.7;
-  color: #f3e3c9;
+  color: #4a2a2e;
 }
 .hx-title {
-  margin-top: 0.5rem;
-  font-size: clamp(2.1rem, 9.4vw, 3.1rem);
+  margin-top: 0.3rem;
+  font-size: clamp(2.4rem, 11vw, 3.4rem);
   line-height: 1.22;
   font-weight: 400;
-  color: #fbeed6;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+  color: #500f1c;
 }
 .hx-sub {
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  color: var(--hx-gold);
-  font-size: 0.95rem;
+  color: #9a6224;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.5;
 }
@@ -788,11 +768,11 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  min-height: 44px;
-  min-width: 9.5rem;
-  padding: 0 1.15rem;
+  min-height: 46px;
+  min-width: 11rem;
+  padding: 0 1.3rem;
   border-radius: 999px;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
   transition: transform 0.15s, background-color 0.15s;
@@ -801,17 +781,20 @@ a {
   transform: translateY(-1px);
 }
 .hx-btn-gold {
-  background: #f1cd7a;
-  color: var(--hx-ink);
-  border: 1px solid #f1cd7a;
+  background: #500f1c;
+  color: #fff1d9;
+  border: 1px solid #500f1c;
 }
 .hx-btn-gold:hover {
-  background: #f6d98f;
+  background: #6a1726;
 }
 .hx-btn-line {
-  background: rgba(52, 1, 10, 0.35);
-  color: #fbeed6;
-  border: 1px solid rgba(233, 198, 110, 0.85);
+  background: transparent;
+  color: #500f1c;
+  border: 1.5px solid #8f241d;
+}
+.hx-btn-line:hover {
+  background: rgba(143, 36, 29, 0.08);
 }
 
 /* কাউন্টডাউন (হালকা আইভরি অংশ) */
@@ -903,35 +886,39 @@ a {
 
 @media (min-width: 760px) {
   .hx {
-    min-height: 600px;
+    height: clamp(460px, 46vw, 640px);
   }
-  .hx-face {
-    width: 40%;
-    object-position: 0 0;
-  }
-  .hx-scene {
-    width: 70%;
-    max-height: 40%;
+  .hx-bg {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    aspect-ratio: auto;
+    object-position: 100% 30%;
+    z-index: 0;
   }
   .hx-copy {
-    width: 62%;
-    padding: 2.4rem 1rem 8rem 1.5rem;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1.5rem 1rem 1.5rem 2.5rem;
   }
   .hx-desc {
-    font-size: 1rem;
+    font-size: 1.15rem;
   }
   .hx-title {
-    font-size: clamp(3.6rem, 6.4vw, 5.4rem);
+    font-size: clamp(3.4rem, 6vw, 5.2rem);
   }
   .hx-sub {
     font-size: 1.25rem;
   }
   .hx-sub i {
-    max-width: 8rem;
+    max-width: 6rem;
   }
   .hx-btns {
     flex-direction: row;
     justify-content: center;
-    margin-top: 1.3rem;
+    margin-top: 1.4rem;
   }
 }

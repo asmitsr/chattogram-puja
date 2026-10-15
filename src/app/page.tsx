@@ -30,9 +30,7 @@ export default async function Home() {
     <>
       <section className="hx">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/hero/scene.webp" alt="" className="hx-scene" width={2120} height={438} fetchPriority="low" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/hero/durga-face.webp" alt="দুর্গা মায়ের মুখের ছবি" className="hx-face" width={1144} height={1254} fetchPriority="high" />
+        <img src="/hero/durga-hero.webp" alt="দুর্গা মায়ের ছবি" className="hx-bg" width={1400} height={788} fetchPriority="high" />
         <div className="hx-copy">
           <div className="hx-orn" aria-hidden="true">
             <i />
