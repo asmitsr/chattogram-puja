@@ -5,6 +5,8 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { requireAdmin, logActivity } from '@/lib/admin';
 import { fromInputDT } from '@/lib/bn';
 import { getYears, pickCurrent } from '@/lib/data';
+import { isValidPlace } from '@/lib/ctgPlaces';
+import { joinDescription } from '@/lib/mandapaText';
 
 const val = (f: FormData, k: string) => String(f.get(k) ?? '').trim();
 const nz = (v: string) => (v === '' ? null : v);
@@ -143,13 +145,34 @@ export async function saveMandapa(formData: FormData): Promise<void> {
   if (!yearId) go(back, 'err', 'পূজাবর্ষ বেছে নিন।');
   if (!['draft', 'published', 'archived'].includes(status)) go(back, 'err', 'অবস্থা ঠিক নয়।');
 
+  // এলাকা: থানা ও এলাকা বাছা হলে "এলাকা, থানা, চট্টগ্রাম" আকারে; নইলে লেখা ঘরের মান
+  let area = val(formData, 'area');
+  const thana = val(formData, 'thana');
+  const locality = val(formData, 'locality');
+  if (thana && locality) {
+    if (!isValidPlace(thana, locality)) go(back, 'err', 'থানা ও এলাকা ঠিক নয়।');
+    area = locality.startsWith('তালিকায় নেই') ? `${thana}, চট্টগ্রাম` : `${locality}, ${thana}, চট্টগ্রাম`;
+  } else if (thana && !locality) {
+    go(back, 'err', 'থানা বাছলে এলাকাও বেছে নিন (অথবা থানা খালি রাখুন)।');
+  }
+
+  const description =
+    val(formData, 'detail_mode') === '1'
+      ? joinDescription({
+          detail: val(formData, 'detail'),
+          puja_plan: val(formData, 'puja_plan'),
+          anjali_time: val(formData, 'anjali_time'),
+          bisorjon_time: val(formData, 'bisorjon_time'),
+        })
+      : val(formData, 'description');
+
   const row = {
     year_id: yearId,
     name,
-    area: nz(val(formData, 'area')),
+    area: nz(area),
     address: nz(val(formData, 'address')),
     contact: nz(val(formData, 'contact')),
-    description: nz(val(formData, 'description')),
+    description: nz(description),
     status,
     ...coords(formData, back),
   };

@@ -3,6 +3,7 @@ import MandapaGrid, { type GridItem } from '@/components/MandapaGrid';
 import { getPublicMandapas, getPublicYear } from '@/lib/publicData';
 import { bn } from '@/lib/bn';
 import { matches } from '@/lib/search';
+import { regionOf } from '@/lib/ctgPlaces';
 import type { Mandapa } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -14,11 +15,18 @@ export default async function MandapaList({ searchParams }: { searchParams: { q?
   // প্রকাশিত সবগুলো মণ্ডপই আসে (কোনো সীমা নেই); ডেটা ২ মিনিটের ক্যাশ থেকে আসে
   const all: Mandapa[] = year ? await getPublicMandapas(year.id) : [];
 
-  const areas = Array.from(new Set(all.map((m) => m.area).filter(Boolean) as string[])).sort();
+  // এলাকার ফিল্টারে শুধু তিনটি অঞ্চল
+  const AREAS: { key: 'metro' | 'north' | 'south'; label: string }[] = [
+    { key: 'south', label: 'দক্ষিণ চট্টগ্রাম' },
+    { key: 'north', label: 'উত্তর চট্টগ্রাম' },
+    { key: 'metro', label: 'মহানগর' },
+  ];
   const q = (searchParams.q ?? '').trim();
-  const area = searchParams.area ?? '';
+  const rawArea = searchParams.area ?? '';
+  // পুরনো লিংকে পুরো এলাকার নাম থাকলেও অঞ্চলে রূপান্তর হয়
+  const area = AREAS.some((a) => a.key === rawArea) ? rawArea : rawArea ? regionOf(rawArea) : '';
   const list = all.filter(
-    (m) => (!area || m.area === area) && matches(`${m.name} ${m.area ?? ''} ${m.address ?? ''}`, q),
+    (m) => (!area || regionOf(m.area) === area) && matches(`${m.name} ${m.area ?? ''} ${m.address ?? ''}`, q),
   );
 
   // ক্লায়েন্টে শুধু যা লাগে তা পাঠানো হয় (পাতার ওজন কমে)
@@ -49,9 +57,9 @@ export default async function MandapaList({ searchParams }: { searchParams: { q?
           </label>
           <select id="area" name="area" defaultValue={area} className="input">
             <option value="">সব এলাকা</option>
-            {areas.map((a) => (
-              <option key={a} value={a}>
-                {a}
+            {AREAS.map((a) => (
+              <option key={a.key} value={a.key}>
+                {a.label}
               </option>
             ))}
           </select>

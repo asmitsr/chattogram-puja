@@ -4,6 +4,7 @@ import Flash from '@/components/Flash';
 import MandapaForm from '@/components/MandapaForm';
 import { requireAdmin } from '@/lib/admin';
 import { getYears } from '@/lib/data';
+import { fetchPins } from '@/lib/pins';
 import { fmtDateTime } from '@/lib/bn';
 import type { Mandapa, Schedule } from '@/lib/types';
 import { addSchedule, deleteMandapa, deleteSchedule } from '../../../actions';
@@ -14,6 +15,8 @@ export default async function EditMandapa({ params, searchParams }: { params: { 
   if (!data) notFound();
   const m = data as Mandapa;
   const years = await getYears(supabase);
+  const { pins: allPins } = await fetchPins(supabase);
+  const pins = allPins.filter((x) => x.id !== m.id);
   const { data: s } = await supabase.from('schedules').select('*').eq('mandapa_id', m.id).order('starts_at');
   const schedules = (s ?? []) as Schedule[];
   const { count: corrCount } = await supabase
@@ -43,7 +46,7 @@ export default async function EditMandapa({ params, searchParams }: { params: { 
         </p>
       )}
 
-      <MandapaForm mandapa={m} years={years} />
+      <MandapaForm mandapa={m} years={years} pins={pins} />
 
       <section className="space-y-3">
         <h2 className="text-2xl text-accent">সময়সূচি</h2>

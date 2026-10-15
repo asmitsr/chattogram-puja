@@ -4,6 +4,7 @@
 // টাইল, জুম বোতাম, ॐ মার্কার, পপআপ, ব্যাকগ্রাউন্ড রং ও ফুল-স্ক্রিন বোতাম এখানেই ঠিক করা।
 
 import { myMapsUrl } from '@/lib/myMaps';
+import { regionOf } from '@/lib/ctgPlaces';
 
 export interface Pin {
   id: string;
@@ -47,11 +48,8 @@ export const AREA_COLOR: Record<AreaKey, string> = {
 };
 
 export function areaKey(area: string | null | undefined): AreaKey {
-  const a = (area ?? '').normalize('NFC');
-  if (a.includes('মেট্রোপলিটন') || a.includes('মহানগর') || a.includes('কোতোয়ালী')) return 'metro';
-  if (a.includes('উত্তর চট্টগ্রাম')) return 'north';
-  if (a.includes('দক্ষিণ চট্টগ্রাম')) return 'south';
-  return 'new';
+  const r = regionOf(area);
+  return r === 'other' ? 'new' : r;
 }
 
 // ছোট ও পরিষ্কার ॐ পিন (৬৪×৮০ ছবির ছোট রূপ); নিচের সূচালো মাথা ঠিক জায়গাটি দেখায়।
