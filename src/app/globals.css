@@ -965,3 +965,292 @@ a {
 .cm .input::placeholder {
   color: #9a7f6e;
 }
+
+/* হোম: নিচের ক্রিম অংশ (মকআপ অনুযায়ী) */
+.hm {
+  background: #f8eacd;
+  background-image: radial-gradient(circle at 0 0, rgba(233, 198, 110, 0.2), transparent 30%),
+    radial-gradient(circle at 100% 40%, rgba(233, 198, 110, 0.16), transparent 30%);
+  padding-bottom: 1.6rem;
+}
+.hm-gallery {
+  padding-top: 1.6rem;
+  text-align: center;
+}
+.hm-orn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: #b97b35;
+}
+.hm-orn i {
+  display: block;
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(185, 123, 53, 0.7));
+}
+.hm-orn i:last-child {
+  background: linear-gradient(to left, transparent, rgba(185, 123, 53, 0.7));
+}
+.hm-h {
+  margin-top: 0.4rem;
+  font-size: clamp(1.5rem, 6vw, 2rem);
+  color: #4a0a12;
+  font-weight: 700;
+  font-family: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
+}
+.hm-sub {
+  color: #5a3a30;
+  font-size: 0.98rem;
+}
+.hm-photos {
+  margin-top: 0.9rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.hm-photos img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 4.6;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e3cf9f;
+  box-shadow: 0 2px 8px rgba(80, 15, 28, 0.18);
+}
+@media (min-width: 640px) {
+  .hm-photos {
+    gap: 1rem;
+  }
+  .hm-photos img {
+    aspect-ratio: 4 / 3;
+    border-radius: 12px;
+  }
+}
+.hm-stack {
+  margin-top: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.hm-card {
+  border: 1px solid #e3cf9f;
+  background: #fbf0dc;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 1px 6px rgba(80, 15, 28, 0.06);
+}
+.hm-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #5c0a16;
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-family: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
+}
+.hm-empty {
+  margin-top: 0.7rem;
+  border-radius: 10px;
+  background: #fffaf0;
+  border: 1px solid #ecd9ae;
+  padding: 0.8rem 1rem;
+  color: #6b4a3a;
+}
+.hm-notices {
+  margin-top: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
+}
+.hm-notices li {
+  border-radius: 10px;
+  background: #fffaf0;
+  border: 1px solid #ecd9ae;
+  border-left: 4px solid #8c1d32;
+  padding: 0.7rem 0.9rem;
+}
+.hm-notices b {
+  color: #301016;
+}
+.hm-notices p {
+  margin-top: 0.15rem;
+  color: #4a2a2e;
+  font-size: 0.95rem;
+  white-space: pre-line;
+}
+.hm-notices time {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: #775b45;
+}
+.hm-more summary {
+  cursor: pointer;
+  margin-top: 0.7rem;
+  color: #8c1d32;
+  font-weight: 600;
+}
+.hm-story {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  color: #fff1d9;
+  background: linear-gradient(100deg, #4a0712 0%, #6e1424 55%, #8a2230 100%);
+}
+.hm-story-ic {
+  color: #e9c66e;
+}
+.hm-story-tx {
+  flex: 1;
+  min-width: 11rem;
+}
+.hm-story-tx h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff1d9;
+  font-family: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
+}
+.hm-story-tx p {
+  font-size: 0.88rem;
+  color: #f3dcc0;
+}
+.hm-story-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 1.2rem;
+  border-radius: 999px;
+  background: #fff1d9;
+  color: #5c0a16;
+  font-weight: 700;
+  text-decoration: none;
+}
+.hm-help {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  border: 1px solid #e3cf9f;
+  background: #fbf0dc;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+}
+.hm-help-ic {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #f1dcaa;
+  color: #5c0a16;
+  flex-shrink: 0;
+}
+.hm-help-tx {
+  flex: 1;
+  min-width: 12rem;
+}
+.hm-help-tx h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #4a0a12;
+  line-height: 1.4;
+  font-family: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
+}
+.hm-help-tx p {
+  font-size: 0.9rem;
+  color: #5a3a30;
+}
+.hm-help-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  border: 1.5px solid #8c1d32;
+  color: #6a1726;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* কমেন্ট কার্ড (মকআপ অনুযায়ী) */
+.cm-item {
+  border: 1px solid #ecd9ae;
+  background: #fffaf0;
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+.cm-av {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #f1dcaa;
+  color: #7a1424;
+}
+.cm-av-admin {
+  background: #7a1424;
+  color: #fff1d9;
+}
+.cm-reply {
+  background: #f7e4b6;
+  border-left: 3px solid #a3152b;
+}
+.cm-photo {
+  display: block;
+  max-width: 22rem;
+}
+.cm-photo img {
+  width: 100%;
+  height: auto;
+  max-height: 22rem;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #ecd9ae;
+}
+.cm-photo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 42px;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  border: 1.5px dashed #b97b35;
+  color: #6a1726;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+input.sr-only:focus-visible + .cm-photo-btn {
+  outline: 3px solid #9a6224;
+  outline-offset: 2px;
+}
+.cm-photo-prev {
+  position: relative;
+  display: inline-block;
+}
+.cm-photo-prev img {
+  max-height: 11rem;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid #dcb866;
+}
+.cm-photo-prev button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(48, 16, 22, 0.85);
+  color: #fff;
+  font-size: 0.9rem;
+}

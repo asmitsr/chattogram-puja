@@ -60,6 +60,7 @@ export interface MandapaComment {
   is_anonymous: boolean;
   by_admin: boolean;
   like_count: number;
+  image_path?: string | null;
   created_at: string;
 }
 
