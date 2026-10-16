@@ -922,3 +922,46 @@ a {
     margin-top: 1.4rem;
   }
 }
+
+/* কমেন্ট অংশ: ঐতিহ্যবাহী ক্রিম-মেরুন-সোনালি রং (ডার্ক মোডেও একই থাকে) */
+.cm {
+  --bg: #fbf0dc;
+  --surface: #fffaf0;
+  --fg: #301016;
+  --muted: #6b4a3a;
+  --line: #e3cf9f;
+  --accent: #6a0a14;
+  --btn-bg: #6a1726;
+  --btn-fg: #fff1d9;
+  --gold: #9a6224;
+  --gold-soft: #f6e4b8;
+  --err: #a3152b;
+  --warn: #8a4b00;
+  --warn-bg: #fbebd0;
+  color: var(--fg);
+  color-scheme: light;
+}
+.cm-band {
+  background: #fbf0dc;
+  background-image: radial-gradient(circle at 0 100%, rgba(233, 198, 110, 0.22), transparent 38%),
+    radial-gradient(circle at 100% 100%, rgba(233, 198, 110, 0.22), transparent 38%);
+  border-top: 1px solid #ecd9ae;
+}
+.cm-box {
+  background: #fbf0dc;
+  border: 1px solid #e3cf9f;
+  border-radius: 14px;
+  padding: 1rem;
+}
+.cm .card {
+  border-color: #dcb866;
+  background: #fffaf0;
+}
+.cm .input {
+  background: #fffdf7;
+  border-color: #dcb866;
+  color: #301016;
+}
+.cm .input::placeholder {
+  color: #9a7f6e;
+}

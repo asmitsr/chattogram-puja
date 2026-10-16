@@ -161,15 +161,6 @@ function Author({ c }: { c: MandapaComment }) {
   );
 }
 
-// অ্যাডমিনের রিপ্লাইয়ে আলাদা, পরিষ্কার লেবেল
-function AdminReplyBadge() {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-btn px-2.5 py-0.5 text-xs font-bold text-btnfg">
-      <span aria-hidden="true">🛡</span> এডমিন রিপ্লাই
-    </span>
-  );
-}
-
 // শুধু অ্যাডমিনকে দেখানো হয়: এক চাপে মন্তব্য/রিপ্লাই মোছা (নিশ্চিত করার প্রশ্নসহ)
 function DeleteButton({ c }: { c: MandapaComment }) {
   const router = useRouter();
@@ -218,9 +209,7 @@ function AdminReplyForm({ parentId, onDone }: { parentId: string; onDone: () => 
 
   return (
     <form onSubmit={submit} className="space-y-3 rounded-md border border-line bg-surface p-3">
-      <div className="flex items-center gap-2">
-        <AdminReplyBadge />
-      </div>
+      <p className="text-sm font-bold text-accent">অ্যাডমিন</p>
       <textarea
         className="input min-h-[80px]"
         value={body}
@@ -253,11 +242,13 @@ export default function Comments({
   comments,
   failed,
   isAdmin = false,
+  band = false,
 }: {
   mandapaId: string | null;
   comments: MandapaComment[];
   failed?: boolean;
   isAdmin?: boolean;
+  band?: boolean;
 }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [liked, setLiked] = useState<Record<string, boolean>>({});
@@ -314,7 +305,7 @@ export default function Comments({
   const countOf = (c: MandapaComment) => counts[c.id] ?? c.like_count;
 
   return (
-    <section aria-labelledby="comments-h" className="space-y-4">
+    <section aria-labelledby="comments-h" className={`space-y-4 ${band ? '' : 'cm cm-box'}`}>
       <h2 id="comments-h" className="text-2xl text-accent">
         <span aria-hidden="true">💬</span> মতামত ও কমেন্টস {total > 0 && <span className="muted text-base">({bn(total)})</span>}
       </h2>
@@ -354,7 +345,6 @@ export default function Comments({
                   r.by_admin ? 'border-l-4 border-l-accent bg-goldsoft' : 'bg-bg'
                 }`}
               >
-                {r.by_admin && <AdminReplyBadge />}
                 <Author c={r} />
                 <p className="whitespace-pre-line break-words">{r.body}</p>
                 <div className="flex flex-wrap items-center gap-4">

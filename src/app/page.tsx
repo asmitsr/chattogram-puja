@@ -1,14 +1,15 @@
 import Link from 'next/link';
 import Countdown from '@/components/Countdown';
 import Lotus from '@/components/Lotus';
-import MandapaCard from '@/components/MandapaCard';
+import Comments from '@/components/Comments';
 import { hasEnv } from '@/lib/auth';
-import { getPublicMandapas, getPublicNotices, getPublicYear } from '@/lib/publicData';
-import { bn } from '@/lib/bn';
-import { YEAR_STATUS } from '@/lib/types';
+import { getPublicNotices } from '@/lib/publicData';
+import { isAdminViewer } from '@/lib/admin';
+import { createClient } from '@/lib/supabase/server';
+import type { MandapaComment } from '@/lib/types';
 
-// দর্শকদের হোম পাতা আগে থেকে তৈরি থাকে, ২ মিনিট পরপর (বা অ্যাডমিন বদলালেই) নতুন হয় — তাই খুব দ্রুত খোলে।
-export const revalidate = 120;
+// কমেন্ট সবসময় তাজা দেখাতে (ও অ্যাডমিন চিনতে) পাতাটি প্রতিবার তৈরি হয়।
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   if (!hasEnv()) {
@@ -20,11 +21,13 @@ export default async function Home() {
     );
   }
 
-  const year = await getPublicYear();
-  const all = year ? await getPublicMandapas(year.id) : [];
-  const mandapas = all.slice(0, 6);
-  const count = all.length;
-  const notices = await getPublicNotices();
+  const supabase = createClient();
+  const [notices, { data, error }, isAdmin] = await Promise.all([
+    getPublicNotices(),
+    // সাধারণ মতামত: নির্দিষ্ট কোনো মণ্ডপের নয় (mandapa_id ফাঁকা)
+    supabase.from('comments').select('*').is('mandapa_id', null).order('created_at', { ascending: true }).limit(500),
+    isAdminViewer(),
+  ]);
 
   return (
     <>
@@ -64,35 +67,20 @@ export default async function Home() {
 
       <Countdown />
 
-      <div className="wrap space-y-6 py-6">
-        {notices.map((nn) => (
-          <div key={nn.id} role="note" className="rounded-r-md border-l-[5px] border-herogold bg-warnbg p-3">
-            <b className="text-warn">জরুরি নোটিশ: {nn.title}</b>
-            {nn.body ? <p className="mt-1">{nn.body}</p> : null}
-          </div>
-        ))}
+      {notices.length > 0 && (
+        <div className="wrap space-y-4 py-6">
+          {notices.map((nn) => (
+            <div key={nn.id} role="note" className="rounded-r-md border-l-[5px] border-herogold bg-warnbg p-3">
+              <b className="text-warn">জরুরি নোটিশ: {nn.title}</b>
+              {nn.body ? <p className="mt-1">{nn.body}</p> : null}
+            </div>
+          ))}
+        </div>
+      )}
 
-        <div>
-          <section>
-            <h2 className="text-2xl text-accent">{year ? `${bn(year.year)} সালের মণ্ডপ` : 'পূজামণ্ডপ'}</h2>
-            <p className="muted mb-3 mt-1">
-              {year ? `${year.title} · ${YEAR_STATUS[year.status]} · ${bn(count)}টি প্রকাশিত মণ্ডপ` : 'এখনো কোনো পূজাবর্ষ তৈরি হয়নি।'}
-            </p>
-            {mandapas.length ? (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {mandapas.map((m) => (
-                  <MandapaCard key={m.id} m={m} />
-                ))}
-              </div>
-            ) : (
-              <p className="muted">এখনো কোনো মণ্ডপ প্রকাশ হয়নি।</p>
-            )}
-            <p className="mt-4">
-              <Link href="/mandapa" className="btn-ghost">
-                সব মণ্ডপ দেখুন
-              </Link>
-            </p>
-          </section>
+      <div className="cm cm-band">
+        <div className="wrap py-8">
+          <Comments mandapaId={null} comments={(data ?? []) as MandapaComment[]} failed={!!error} isAdmin={isAdmin} band />
         </div>
       </div>
     </>

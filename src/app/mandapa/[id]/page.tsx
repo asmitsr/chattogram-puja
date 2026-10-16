@@ -1,14 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import Comments from '@/components/Comments';
 import MapView from '@/components/MapView';
 import ShareBar from '@/components/ShareBar';
-import { isAdminViewer } from '@/lib/admin';
 import { fetchNearby } from '@/lib/pins';
 import { myMapsUrl } from '@/lib/myMaps';
 import { createClient } from '@/lib/supabase/server';
 import { bn, dayKey, fmtDate, fmtTime } from '@/lib/bn';
-import type { Mandapa, MandapaComment, Schedule } from '@/lib/types';
+import type { Mandapa, Schedule } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,13 +16,10 @@ export default async function MandapaDetail({ params }: { params: { id: string }
   if (!data) notFound();
   const m = data as Mandapa;
 
-  const [{ data: y }, { data: s }, { data: cm, error: cmErr }, isAdmin] = await Promise.all([
+  const [{ data: y }, { data: s }] = await Promise.all([
     supabase.from('puja_years').select('year,title').eq('id', m.year_id).maybeSingle(),
     supabase.from('schedules').select('*').eq('mandapa_id', m.id).order('starts_at'),
-    supabase.from('comments').select('*').eq('mandapa_id', m.id).order('created_at', { ascending: true }).limit(500),
-    isAdminViewer(),
   ]);
-  const comments = (cm ?? []) as MandapaComment[];
   const schedules = (s ?? []) as Schedule[];
 
   const groups = new Map<string, Schedule[]>();
@@ -110,7 +105,6 @@ export default async function MandapaDetail({ params }: { params: { id: string }
       )}
 
       <ShareBar title={m.name} />
-      <Comments mandapaId={m.id} comments={comments} failed={!!cmErr} isAdmin={isAdmin} />
 
       <section>
         <h2 className="mb-2 text-2xl text-accent">সময়সূচি</h2>
