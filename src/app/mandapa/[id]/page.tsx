@@ -46,10 +46,10 @@ export default async function MandapaDetail({ params }: { params: { id: string }
         {m.area && <span className="badge">{m.area}</span>}
         {y && <span className="badge ml-2">{bn(y.year)}</span>}
         {m.status === 'archived' && <span className="badge-warn ml-2">আর্কাইভ</span>}
-        <h1 className="mt-2 text-3xl text-accent">{m.name}</h1>
+        <h1 className="mt-2 break-words text-3xl text-accent [overflow-wrap:anywhere]">{m.name}</h1>
         {m.address && <p className="mt-2">{m.address}</p>}
         {m.contact && <p className="muted mt-1">যোগাযোগ (কমিটির): {m.contact}</p>}
-        {m.description && <p className="mt-3 max-w-2xl">{m.description}</p>}
+        {m.description && <p className="mt-3 max-w-2xl whitespace-pre-line">{m.description}</p>}
       </div>
 
       <section>

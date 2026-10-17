@@ -72,6 +72,10 @@ const METRO_THANAS = Object.keys(CTG_GROUPS[0]?.places ?? {});
 export function regionOf(area: string | null | undefined): RegionKey {
   const a = (area ?? '').normalize('NFC');
   if (!a) return 'other';
+  // v57 ধাঁচ: "অঞ্চল · থানা · এলাকা" — শুরুর শব্দেই অঞ্চল চেনা যায়
+  if (a.startsWith('মহানগর')) return 'metro';
+  if (a.startsWith('উত্তর চট্টগ্রাম')) return 'north';
+  if (a.startsWith('দক্ষিণ চট্টগ্রাম')) return 'south';
   if (a.includes('মেট্রোপলিটন') || a.includes('মহানগর')) return 'metro';
   if (a.includes('উত্তর চট্টগ্রাম')) return 'north';
   if (a.includes('দক্ষিণ চট্টগ্রাম')) return 'south';
@@ -83,4 +87,29 @@ export function regionOf(area: string | null | undefined): RegionKey {
   }
   for (const part of parts) if (METRO_THANAS.includes(part)) return 'metro';
   return 'other';
+}
+
+// ---- v57: তালিকা অঞ্চল ও থানা অনুযায়ী ভাগ ----
+export const REGION_ORDER: RegionKey[] = ['metro', 'north', 'south', 'other'];
+export const AREA_SEP = ' · ';
+const REGION_WORDS = ['মহানগর', 'উত্তর চট্টগ্রাম', 'দক্ষিণ চট্টগ্রাম'];
+
+// "মহানগর · কোতোয়ালী · পাথরঘাটা" → অঞ্চল, থানা (উত্তর/দক্ষিণে উপজেলা), এলাকা।
+// পুরনো ধাঁচের লেখায় (যেমন "উত্তর চট্টগ্রাম") থানা/এলাকা থাকে না: thana ও locality null।
+export function splitArea(area: string | null | undefined): {
+  region: RegionKey;
+  thana: string | null;
+  locality: string | null;
+  rest: string;
+} {
+  const a = (area ?? '').normalize('NFC').trim();
+  const region = regionOf(a);
+  const parts = a
+    .split(AREA_SEP)
+    .map((x) => x.trim())
+    .filter(Boolean);
+  if (parts.length > 0 && REGION_WORDS.includes(parts[0])) {
+    return { region, thana: parts[1] ?? null, locality: parts[2] ?? null, rest: parts.slice(1).join(AREA_SEP) };
+  }
+  return { region, thana: null, locality: null, rest: a };
 }

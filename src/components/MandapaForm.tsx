@@ -68,6 +68,7 @@ export default function MandapaForm({
         </label>
         <input id="area" name="area" className="input" list="area-list" maxLength={200} defaultValue={mandapa?.area ?? ''} />
         <datalist id="area-list">
+          <option value="মহানগর" />
           <option value="মেট্রোপলিটন এলাকা (মহানগর)" />
           <option value="উত্তর চট্টগ্রাম" />
           <option value="দক্ষিণ চট্টগ্রাম" />

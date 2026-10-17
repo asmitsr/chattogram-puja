@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { bn } from '@/lib/bn';
+import { REGION_LABEL, type RegionKey } from '@/lib/ctgPlaces';
 
 export interface GridItem {
   id: string;
@@ -11,6 +12,10 @@ export interface GridItem {
   address: string | null;
   lat: number | null;
   lng: number | null;
+  // v57: অঞ্চল ও থানা অনুযায়ী ভাগের জন্য (area লেখা থেকে সার্ভারে বের করা)
+  region: RegionKey;
+  thana: string | null;
+  locality: string | null;
 }
 
 const FAV_KEY = 'ctg-puja-favs';
@@ -73,6 +78,15 @@ export default function MandapaGrid({ items }: { items: GridItem[] }) {
 
   const favCount = items.filter((i) => favSet.has(i.id)).length;
 
+  // শিরোনামের পাশের সংখ্যা (বাছাই-ফিল্টারের পরের তালিকা থেকে)
+  const regionCount = new Map<string, number>();
+  const thanaCount = new Map<string, number>();
+  for (const i of list) {
+    regionCount.set(i.region, (regionCount.get(i.region) ?? 0) + 1);
+    const tk = `${i.region}|${i.thana ?? ''}`;
+    thanaCount.set(tk, (thanaCount.get(tk) ?? 0) + 1);
+  }
+
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -97,15 +111,34 @@ export default function MandapaGrid({ items }: { items: GridItem[] }) {
         <p className="muted">এখনো কোনো মণ্ডপ বাছাই করা হয়নি। কার্ডের ♡ চাপলে এখানে জমা হবে।</p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((m) => {
+          {visible.map((m, idx) => {
             const fav = favSet.has(m.id);
             const hasPos = m.lat !== null && m.lng !== null && Number.isFinite(m.lat) && Number.isFinite(m.lng);
+            const prev = idx > 0 ? visible[idx - 1] : null;
+            const newRegion = !prev || prev.region !== m.region;
+            const newThana = !prev || prev.region !== m.region || prev.thana !== m.thana;
+            // কার্ডের ব্যাজ: এলাকার নাম (শিরোনামে অঞ্চল ও থানা আগেই আছে)
+            const badge = m.locality ?? (m.thana ? null : m.area);
             return (
-              <article key={m.id} className="card flex flex-col">
+              <Fragment key={m.id}>
+                {newRegion && (
+                  <h2 className="col-span-full mt-4 flex items-baseline gap-2 border-b-2 border-accent pb-1 text-2xl text-accent first:mt-0">
+                    {REGION_LABEL[m.region]}
+                    <span className="muted">{bn(regionCount.get(m.region) ?? 0)}টি মণ্ডপ</span>
+                  </h2>
+                )}
+                {newThana && (
+                  <h3 className="col-span-full mt-1 flex items-baseline gap-2 text-lg text-fg">
+                    <span aria-hidden="true">📍</span>
+                    {m.thana ?? 'থানা/উপজেলা উল্লেখ নেই'}
+                    <span className="muted">{bn(thanaCount.get(`${m.region}|${m.thana ?? ''}`) ?? 0)}টি</span>
+                  </h3>
+                )}
+              <article className="card flex flex-col">
                 <Link href={`/mandapa/${m.id}`} prefetch={false} className="block flex-1 text-fg no-underline">
-                  {m.area && <span className="badge">{m.area}</span>}
-                  <h3 className="mt-1.5 text-xl text-accent">{m.name}</h3>
-                  {m.address && <p className="muted mt-1">{m.address}</p>}
+                  {badge && <span className="badge">{badge}</span>}
+                  <h4 className="mt-1.5 break-words text-xl text-accent [overflow-wrap:anywhere]">{m.name}</h4>
+                  {m.address && <p className="muted mt-1 break-words">{m.address}</p>}
                 </Link>
                 <div className="mt-3 flex items-center gap-2 border-t border-line pt-3">
                   {hasPos ? (
@@ -131,6 +164,7 @@ export default function MandapaGrid({ items }: { items: GridItem[] }) {
                   </button>
                 </div>
               </article>
+              </Fragment>
             );
           })}
         </div>
