@@ -18,31 +18,31 @@
 | ফাইল / ফোল্ডার | কাজ ও বিবরণ |
 | :--- | :--- |
 | `src/app` | পাবলিক পেজ (হোম, মণ্ডপ, ম্যাপ, সময়সূচি, আর্কাইভ, জমা), লগইন, অ্যাডমিন প্যানেল। |
-| `src/components` | UI কম্পোনেন্ট (`MandapaGrid.tsx`, `BottomNav.tsx`, `InstallApp.tsx`, `PujaMapEmbed.tsx` ইত্যাদি)। |
-| `src/lib` | ডেটা ফেচিং ও হেল্পার (`publicData.ts`, `ctgPlaces.ts`, `pujaSchedule.ts`, `pins.ts`, `myMaps.ts`)। |
+| `src/components` | UI কম্পোনেন্ট (`MandapaGrid`, `BottomNav`, `InstallApp`, `PujaMapEmbed` ইত্যাদি)। |
+| `src/lib` | ডেটা ও হেল্পার (`publicData`, `ctgPlaces`, `pujaSchedule`, `pins`, `myMaps`)। |
 | `src/middleware.ts` | সেশন ও রুট প্রোটেকশন মিডলওয়্যার। |
 | `.env.example` | দুটি env মানের নমুনা। |
 
 ### ২. ডাটাবেস স্ক্রিপ্ট (`sql/` ফোল্ডার)
 *(Supabase SQL Editor-এ প্রয়োজন অনুযায়ী চালাতে হবে)*
 
-| SQL ফাইল | ভার্সন | কাজ ও বিবরণ |
-| :--- | :---: | :--- |
-| `sql/01_policies.sql` | Base | নিরাপত্তা নিয়ম (RLS)। Supabase SQL Editor-এ চালান। |
-| `sql/02_make_admin.sql` | Base | নিজের ইমেইল দিয়ে অ্যাডমিন বানানো। |
-| `sql/03_first_year.sql` | Base | *(ঐচ্ছিক)* প্রথম পূজাবর্ষ। |
-| `sql/07_require_approval.sql` | `v19` | স্বয়ংক্রিয় প্রকাশ বন্ধ; সব জমা অ্যাডমিন অনুমোদনের পর প্রকাশ হয়। |
-| `sql/08_comments_remove_news.sql` | `v20` | সংবাদ বাদ; মণ্ডপের মন্তব্য, রিপ্লাই ও লাইক। |
-| `sql/09_auto_correction_and_general_comments.sql` | `v21` | ভুল সংশোধনের অটো-আপডেট এবং সাধারণ মতামত ও কমেন্টস। |
-| `sql/10_admin_only_replies_and_site_likes.sql` | `v29` | রিপ্লাই শুধু অ্যাডমিনের; ওয়েবসাইট লাইক। |
-| `sql/13_add_missing_mandapas.sql` | `v52` | ম্যাপের ৭টি বাদ পড়া মণ্ডপ যোগ (মোট ১২০)। |
-| `sql/15_sync_with_map_v57.sql` | `v57` | Google My Maps KMZ-এর সব ২৫৯টি মণ্ডপ (মহানগর ১৭৯, উত্তর ৩৩, দক্ষিণ ৪৭) সাইটের ডাটাবেসে হুবহু মেলায়। |
+| SQL ফাইল | কাজ ও বিবরণ |
+| :--- | :--- |
+| `01_policies.sql` | নিরাপত্তা নিয়ম (RLS)। Supabase SQL Editor-এ চালান। |
+| `02_make_admin.sql` | নিজের ইমেইল দিয়ে অ্যাডমিন বানানো। |
+| `03_first_year.sql` | *(ঐচ্ছিক)* প্রথম পূজাবর্ষ। |
+| `07_require_approval.sql` | **(v19)** স্বয়ংক্রিয় প্রকাশ বন্ধ; সব জমা অ্যাডমিন অনুমোদনের পর প্রকাশ হয়। |
+| `08_comments_remove_news.sql` | **(v20)** সংবাদ বাদ; মণ্ডপের মন্তব্য, রিপ্লাই ও লাইক। |
+| `09_auto_correction...sql` | **(v21)** ভুল সংশোধনের অটো-আপডেট এবং সাধারণ মতামত ও কমেন্টস। |
+| `10_admin_only_replies...sql` | **(v29)** রিপ্লাই শুধু অ্যাডমিনের; ওয়েবসাইট লাইক। |
+| `13_add_missing_mandapas.sql` | **(v52)** ম্যাপের ৭টি বাদ পড়া মণ্ডপ যোগ (মোট ১২০)। |
+| `15_sync_with_map_v57.sql` | **(v57)** Google My Maps KMZ-এর সব ২৫৯টি মণ্ডপ (মহানগর ১৭৯, উত্তর ৩৩, দক্ষিণ ৪৭) সাইটের ডাটাবেসে হুবহু মেলায়। |
 
 ---
 
 ## ⚙️ সেটআপ ও কনফিগারেশন
 
 ### 🔑 env মান (Vercel-এ বসাতে হবে)
-```env
+```text
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
